@@ -82,7 +82,7 @@ Visit **`http://localhost:5173`** to access the application and inspect the Phas
 
 - [x] **Phase 0 — Project Setup & Architecture**: Decoupled monorepo scaffold, PostgreSQL database, Laravel Reverb WebSockets, Sanctum SPA configuration, Vite reverse proxy, and health probe dashboard.
 - [x] **Phase 1 — Authentication**: User registration, login with username/email, logout, SPA cookie auth guards, and calibrated 1200 ELO rating baseline.
-- [ ] **Phase 2 — Landing Page**: Public marketing page with chess theme and authentication CTAs.
+- [x] **Phase 2 — Landing Page**: Public marketing page with dark chess theme, hero section, themeable board preview, and authentication CTAs.
 - [ ] **Phase 3 — Dashboard**: Authenticated player hub, matchmaking triggers, profile stats, and match history.
 - [ ] **Phase 4 — Core Chess Gameplay**: Authoritative server-side move validation, Reverb real-time sync, clock management, and end conditions.
 - [ ] **Phase 5 — Polish & Hardening**: Reconnection handling mid-game, persistence, edge-case hardening, and cosmetics extensibility preparation.

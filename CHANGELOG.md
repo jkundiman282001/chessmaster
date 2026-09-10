@@ -10,6 +10,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased] - 2026-09-10
 
 ### Added
+- **Phase 2 Public Landing Page**: Built comprehensive responsive landing page (`LandingPage.tsx`) with dark chess theme, hero presentation, architectural pillar cards, and 3-step gameplay onboarding.
+- **Themeable Chessboard Preview**: Created `BoardPreview.tsx` demonstrating classical piece rendering, coordinate notation, live WebSocket move highlights (e2-e4), and extensible theme token styles (`classic`, `emerald`, `wood`).
+- **React Router Integration**: Added `react-router-dom` with routes for `/` (LandingPage), `/health` (Architecture Diagnostics Hub), and fallback handling.
+- **Diagnostics Hub View**: Factored telemetry and Phase roadmap tracker into dedicated `HealthPage.tsx` accessible via navbar diagnostics link.
+
+### Added (Phase 1)
 - **Phase 1 User Profile Migration**: Added `username` (unique, indexed), `rating` (default 1200 ELO baseline), and `avatar` placeholder to PostgreSQL `users` table.
 - **Sanctum Authentication Endpoints**: Implemented `POST /api/register`, `POST /api/login`, `POST /api/logout`, and `GET /api/user` with session cookie stateful authentication.
 - **Dual Login & Brute-Force Rate Limiting**: Built `LoginRequest` allowing login via either username or email with rate-limiting throttle (5 attempts/min) to prevent brute-force attacks.
