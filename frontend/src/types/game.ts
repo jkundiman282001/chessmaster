@@ -36,8 +36,58 @@ export interface Game {
   black_player: PlayerSummary | null
   winner_id: number | null
   end_reason: string | null
+  draw_offered_by: number | null
+  last_move_at: string | null
   created_at: string
   updated_at: string
+}
+
+export interface MoveEventPayload {
+  game_code: string
+  move: {
+    from: string
+    to: string
+    promotion?: string | null
+    san: string
+  }
+  fen: string
+  turn: 'white' | 'black'
+  status: 'waiting' | 'in_progress' | 'completed' | 'aborted'
+  white_time_remaining: number
+  black_time_remaining: number
+  last_move_at: string | null
+  winner_id: number | null
+  end_reason: string | null
+  is_check: boolean
+  is_checkmate: boolean
+  is_stalemate: boolean
+  is_draw: boolean
+  san: string
+  pgn: string | null
+}
+
+export interface GameEndedPayload {
+  game_code: string
+  status: 'completed'
+  winner_id: number | null
+  end_reason: string
+}
+
+export interface DrawOfferedPayload {
+  game_code: string
+  offered_by: number
+}
+
+export interface DrawDeclinedPayload {
+  game_code: string
+  declined_by: number
+}
+
+export interface PlayerJoinedPayload {
+  game_code: string
+  status: 'in_progress'
+  white_player: PlayerSummary | null
+  black_player: PlayerSummary | null
 }
 
 export interface LeaderboardEntry {

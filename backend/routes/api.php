@@ -23,6 +23,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/games', [GameController::class, 'store']);
     Route::post('/games/join', [GameController::class, 'join']);
     Route::get('/games/{code}', [GameController::class, 'show']);
+    Route::post('/games/{code}/move', [GameController::class, 'move']);
+    Route::post('/games/{code}/resign', [GameController::class, 'resign']);
+    Route::post('/games/{code}/draw-offer', [GameController::class, 'offerDraw']);
+    Route::post('/games/{code}/draw-accept', [GameController::class, 'acceptDraw']);
+    Route::post('/games/{code}/draw-decline', [GameController::class, 'declineDraw']);
+    Route::post('/games/{code}/timeout-claim', [GameController::class, 'claimTimeout']);
 });
 
 Route::get('/health', function () {

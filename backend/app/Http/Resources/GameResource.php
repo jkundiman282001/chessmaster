@@ -38,6 +38,8 @@ class GameResource extends JsonResource
             ] : null,
             'winner_id' => $this->winner_id,
             'end_reason' => $this->end_reason,
+            'draw_offered_by' => $this->draw_offered_by,
+            'last_move_at' => $this->last_move_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

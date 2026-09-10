@@ -2,10 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\DrawDeclined;
+use App\Events\DrawOffered;
+use App\Events\GameEnded;
+use App\Events\MoveMade;
+use App\Events\PlayerJoined;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GameResource;
 use App\Models\Game;
 use App\Models\User;
+use App\Services\Chess\ChessEngine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -22,6 +28,17 @@ class GameController extends Controller
         'blitz_5_0' => 300,
         'rapid_10_0' => 600,
         'classical_30_0' => 1800,
+    ];
+
+    /**
+     * Increments in seconds per move.
+     */
+    protected const TIME_CONTROL_INCREMENTS = [
+        'bullet_1_0' => 0,
+        'blitz_3_2' => 2,
+        'blitz_5_0' => 0,
+        'rapid_10_0' => 0,
+        'classical_30_0' => 0,
     ];
 
     /**
@@ -57,7 +74,7 @@ class GameController extends Controller
             'white_player_id' => $isWhite ? $user->id : null,
             'black_player_id' => $isWhite ? null : $user->id,
             'status' => 'waiting',
-            'fen' => 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'fen' => ChessEngine::STARTING_FEN,
             'time_control' => $timeControl,
             'white_time_remaining' => $duration,
             'black_time_remaining' => $duration,
@@ -121,9 +138,13 @@ class GameController extends Controller
 
         // Both players are now present - start match
         $game->status = 'in_progress';
+        $game->last_move_at = now();
         $game->save();
 
         $game->load(['whitePlayer', 'blackPlayer']);
+
+        // Broadcast to notify waiting player that game has started
+        broadcast(new PlayerJoined($game));
 
         return response()->json([
             'message' => 'Successfully joined game match.',
@@ -136,11 +157,330 @@ class GameController extends Controller
      */
     public function show(string $code): JsonResponse
     {
-        $game = Game::with(['whitePlayer', 'blackPlayer', 'winner'])
+        $game = Game::with(['whitePlayer', 'blackPlayer', 'winner', 'drawOfferedBy'])
             ->where('code', strtoupper(trim($code)))
             ->firstOrFail();
 
         return response()->json([
+            'game' => new GameResource($game),
+        ]);
+    }
+
+    /**
+     * Execute an authoritative chess move.
+     */
+    public function move(Request $request, string $code): JsonResponse
+    {
+        $validated = $request->validate([
+            'from' => ['required', 'string', 'regex:/^[a-h][1-8]$/i'],
+            'to' => ['required', 'string', 'regex:/^[a-h][1-8]$/i'],
+            'promotion' => ['nullable', 'string', 'in:q,r,b,n,Q,R,B,N'],
+        ]);
+
+        $game = Game::with(['whitePlayer', 'blackPlayer'])
+            ->where('code', strtoupper(trim($code)))
+            ->firstOrFail();
+
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! $game->hasPlayer($user)) {
+            throw ValidationException::withMessages([
+                'game' => 'You are not a registered player in this match.',
+            ]);
+        }
+
+        if ($game->status === 'waiting') {
+            throw ValidationException::withMessages([
+                'game' => 'Game is waiting for an opponent to join.',
+            ]);
+        }
+
+        if ($game->status !== 'in_progress') {
+            throw ValidationException::withMessages([
+                'game' => 'This game is already completed.',
+            ]);
+        }
+
+        // Enforce turn authorization
+        $isWhiteTurn = ($game->turn === 'white');
+        $expectedPlayerId = $isWhiteTurn ? $game->white_player_id : $game->black_player_id;
+
+        if ($user->id !== $expectedPlayerId) {
+            throw ValidationException::withMessages([
+                'turn' => 'It is not your turn to move.',
+            ]);
+        }
+
+        // Calculate clock time
+        $now = now();
+        $elapsed = 0;
+        if ($game->last_move_at) {
+            $elapsed = (int) abs($now->diffInSeconds($game->last_move_at));
+        }
+
+        $timeKey = $isWhiteTurn ? 'white_time_remaining' : 'black_time_remaining';
+        $currentClock = $game->$timeKey;
+
+        // Check if player ran out of time
+        if (($currentClock - $elapsed) <= 0) {
+            $game->$timeKey = 0;
+            $game->status = 'completed';
+            $game->winner_id = $isWhiteTurn ? $game->black_player_id : $game->white_player_id;
+            $game->end_reason = 'timeout';
+            $game->save();
+
+            broadcast(new GameEnded($game, $game->winner_id, 'timeout'));
+
+            throw ValidationException::withMessages([
+                'timeout' => 'Time expired! You ran out of time.',
+            ]);
+        }
+
+        // Authoritatively validate move through ChessEngine
+        $engineResult = ChessEngine::validateAndMakeMove(
+            $game->fen,
+            $validated['from'],
+            $validated['to'],
+            $validated['promotion'] ?? null
+        );
+
+        if (! $engineResult['valid']) {
+            throw ValidationException::withMessages([
+                'move' => $engineResult['error'] ?? 'Illegal move rejected by server engine.',
+            ]);
+        }
+
+        // Apply clock update with increment
+        $increment = self::TIME_CONTROL_INCREMENTS[$game->time_control] ?? 0;
+        $remaining = max(1, ($currentClock - $elapsed) + $increment);
+        $game->$timeKey = $remaining;
+        $game->last_move_at = $now;
+
+        // Apply new FEN and switch turn
+        $game->fen = $engineResult['new_fen'];
+        $game->turn = $isWhiteTurn ? 'black' : 'white';
+
+        // Update PGN record
+        $san = $engineResult['san'];
+        $moveNumber = (int) (ChessEngine::parseFen($game->fen)['full_moves']);
+        if ($isWhiteTurn) {
+            $game->pgn = trim(($game->pgn ? $game->pgn . ' ' : '') . $moveNumber . '. ' . $san);
+        } else {
+            $game->pgn = trim(($game->pgn ? $game->pgn . ' ' : '') . $san);
+        }
+
+        // Move clears any active draw offers
+        $game->draw_offered_by = null;
+
+        // Process game over scenarios
+        if ($engineResult['is_checkmate']) {
+            $game->status = 'completed';
+            $game->winner_id = $user->id;
+            $game->end_reason = 'checkmate';
+        } elseif ($engineResult['is_stalemate']) {
+            $game->status = 'completed';
+            $game->winner_id = null;
+            $game->end_reason = 'stalemate';
+        } elseif ($engineResult['is_draw']) {
+            $game->status = 'completed';
+            $game->winner_id = null;
+            $game->end_reason = 'draw_50_moves';
+        }
+
+        $game->save();
+        $game->load(['whitePlayer', 'blackPlayer', 'winner']);
+
+        $moveData = [
+            'from' => strtolower($validated['from']),
+            'to' => strtolower($validated['to']),
+            'promotion' => $validated['promotion'] ?? null,
+            'san' => $san,
+        ];
+
+        // Broadcast move event
+        broadcast(new MoveMade($game, $moveData, $engineResult));
+
+        return response()->json([
+            'message' => 'Move processed.',
+            'game' => new GameResource($game),
+            'move' => $moveData,
+            'engine' => $engineResult,
+        ]);
+    }
+
+    /**
+     * Resign from the current game.
+     */
+    public function resign(Request $request, string $code): JsonResponse
+    {
+        $game = Game::with(['whitePlayer', 'blackPlayer'])
+            ->where('code', strtoupper(trim($code)))
+            ->firstOrFail();
+
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! $game->hasPlayer($user)) {
+            throw ValidationException::withMessages([
+                'game' => 'You are not a player in this match.',
+            ]);
+        }
+
+        if ($game->status !== 'in_progress') {
+            throw ValidationException::withMessages([
+                'game' => 'Match is not currently in progress.',
+            ]);
+        }
+
+        $opponent = $game->opponentOf($user);
+        $game->status = 'completed';
+        $game->winner_id = $opponent?->id;
+        $game->end_reason = 'resignation';
+        $game->save();
+        $game->load(['whitePlayer', 'blackPlayer', 'winner']);
+
+        broadcast(new GameEnded($game, $opponent?->id, 'resignation'));
+
+        return response()->json([
+            'message' => 'You have resigned.',
+            'game' => new GameResource($game),
+        ]);
+    }
+
+    /**
+     * Offer a draw to opponent.
+     */
+    public function offerDraw(Request $request, string $code): JsonResponse
+    {
+        $game = Game::where('code', strtoupper(trim($code)))->firstOrFail();
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! $game->hasPlayer($user)) {
+            throw ValidationException::withMessages(['game' => 'You are not playing in this match.']);
+        }
+
+        if ($game->status !== 'in_progress') {
+            throw ValidationException::withMessages(['game' => 'Game is not in progress.']);
+        }
+
+        $game->draw_offered_by = $user->id;
+        $game->save();
+
+        broadcast(new DrawOffered($game, $user->id));
+
+        return response()->json([
+            'message' => 'Draw offered to opponent.',
+            'game' => new GameResource($game),
+        ]);
+    }
+
+    /**
+     * Accept a draw offer from opponent.
+     */
+    public function acceptDraw(Request $request, string $code): JsonResponse
+    {
+        $game = Game::where('code', strtoupper(trim($code)))->firstOrFail();
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! $game->hasPlayer($user)) {
+            throw ValidationException::withMessages(['game' => 'You are not playing in this match.']);
+        }
+
+        if ($game->status !== 'in_progress') {
+            throw ValidationException::withMessages(['game' => 'Game is not in progress.']);
+        }
+
+        if (! $game->draw_offered_by || $game->draw_offered_by === $user->id) {
+            throw ValidationException::withMessages(['draw' => 'No active draw offer from your opponent to accept.']);
+        }
+
+        $game->status = 'completed';
+        $game->winner_id = null;
+        $game->end_reason = 'draw_agreement';
+        $game->draw_offered_by = null;
+        $game->save();
+        $game->load(['whitePlayer', 'blackPlayer', 'winner']);
+
+        broadcast(new GameEnded($game, null, 'draw_agreement'));
+
+        return response()->json([
+            'message' => 'Draw agreed. Match ended.',
+            'game' => new GameResource($game),
+        ]);
+    }
+
+    /**
+     * Decline opponent's draw offer.
+     */
+    public function declineDraw(Request $request, string $code): JsonResponse
+    {
+        $game = Game::where('code', strtoupper(trim($code)))->firstOrFail();
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! $game->hasPlayer($user)) {
+            throw ValidationException::withMessages(['game' => 'You are not playing in this match.']);
+        }
+
+        $opponent = $game->opponentOf($user);
+        if ($game->draw_offered_by !== $opponent?->id) {
+            throw ValidationException::withMessages(['draw' => 'No opponent draw offer to decline.']);
+        }
+
+        $game->draw_offered_by = null;
+        $game->save();
+
+        broadcast(new DrawDeclined($game, $user->id));
+
+        return response()->json([
+            'message' => 'Draw offer declined.',
+            'game' => new GameResource($game),
+        ]);
+    }
+
+    /**
+     * Claim victory when opponent clock expires.
+     */
+    public function claimTimeout(Request $request, string $code): JsonResponse
+    {
+        $game = Game::where('code', strtoupper(trim($code)))->firstOrFail();
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! $game->hasPlayer($user)) {
+            throw ValidationException::withMessages(['game' => 'You are not playing in this match.']);
+        }
+
+        if ($game->status !== 'in_progress') {
+            throw ValidationException::withMessages(['game' => 'Game is not in progress.']);
+        }
+
+        $now = now();
+        $elapsed = $game->last_move_at ? (int) abs($now->diffInSeconds($game->last_move_at)) : 0;
+        $isWhiteTurn = ($game->turn === 'white');
+        $timeKey = $isWhiteTurn ? 'white_time_remaining' : 'black_time_remaining';
+        $remaining = $game->$timeKey - $elapsed;
+
+        if ($remaining > 0) {
+            throw ValidationException::withMessages([
+                'timeout' => 'Opponent still has time remaining on their clock (' . $remaining . 's).',
+            ]);
+        }
+
+        $game->$timeKey = 0;
+        $game->status = 'completed';
+        $game->winner_id = $isWhiteTurn ? $game->black_player_id : $game->white_player_id;
+        $game->end_reason = 'timeout';
+        $game->save();
+        $game->load(['whitePlayer', 'blackPlayer', 'winner']);
+
+        broadcast(new GameEnded($game, $game->winner_id, 'timeout'));
+
+        return response()->json([
+            'message' => 'Claimed win on timeout.',
             'game' => new GameResource($game),
         ]);
     }

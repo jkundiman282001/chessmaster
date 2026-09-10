@@ -65,6 +65,7 @@ export function DashboardPage() {
         active_games: [newGame, ...prev.active_games],
       }
     })
+    navigate(`/play/${newGame.code}`)
   }
 
   const handleGameJoined = (joinedGame: Game) => {
@@ -78,6 +79,7 @@ export function DashboardPage() {
           : [joinedGame, ...prev.active_games],
       }
     })
+    navigate(`/play/${joinedGame.code}`)
   }
 
   return (
@@ -264,7 +266,7 @@ export function DashboardPage() {
                   <ActiveGamesList
                     games={data?.active_games ?? []}
                     onSelectGame={(game) => {
-                      alert(`Match room ${game.code} is selected. Phase 4 will launch the interactive live board for this match!`)
+                      navigate(`/play/${game.code}`)
                     }}
                   />
                 )}

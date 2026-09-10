@@ -21,14 +21,26 @@ class Game extends Model
         'white_time_remaining',
         'black_time_remaining',
         'turn',
+        'last_move_at',
         'winner_id',
         'end_reason',
+        'draw_offered_by',
     ];
 
     protected $casts = [
         'white_time_remaining' => 'integer',
         'black_time_remaining' => 'integer',
+        'last_move_at' => 'datetime',
+        'draw_offered_by' => 'integer',
     ];
+
+    /**
+     * The player who currently offered a draw, if any.
+     */
+    public function drawOfferedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'draw_offered_by');
+    }
 
     /**
      * The white player.

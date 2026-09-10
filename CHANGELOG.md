@@ -9,8 +9,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased] - 2026-09-10
 
-### Added
-- **Phase 3 Games Schema & Migration**: Created `games` table in PostgreSQL with room code index, white/black player foreign keys, authoritative FEN, PGN history, clock time tracking, turn state, and end reasons.
+### Added (Phase 4: Core Multiplayer Chess Gameplay)
+- **Authoritative Server-Side Chess Engine (`ChessEngine.php`)**:
+  - Comprehensive FEN parsing and serialization (`parseFen`, `renderFen`).
+  - Strict legal move generation and validation for all piece types (Pawns, Knights, Bishops, Rooks, Queens, Kings).
+  - King check, double check, and discovered check attack detection (`isInCheck`, `isSquareAttacked`).
+  - En passant capture handling with rank-specific target tracking and pawn removal.
+  - Castling validation (kingside `O-O`, queenside `O-O-O`) with full check, through-check, and rights tracking.
+  - Pawn promotion to Queen, Rook, Bishop, or Knight (`validateAndMakeMove` promotion handling).
+  - Checkmate, stalemate, and 50-move rule draw condition detection.
+  - Standard Algebraic Notation (SAN) generation (`e4`, `Nf3`, `exd6`, `O-O`, `Qxf7#`).
+- **Comprehensive Chess Engine Unit Tests (`ChessEngineTest.php`)**:
+  - 10 unit tests covering starting position parsing, FEN round-trip, pawn advances, illegal moves, turn violations, Scholar's Mate checkmate, castling, en passant, promotion, and stalemate.
+- **Clock & Match State Database Migration**:
+  - Added `last_move_at` timestamp and `draw_offered_by` user foreign key to `games` table in PostgreSQL.
+  - Real-time elapsed time calculation per move with time control increment support.
+- **Multiplayer Gameplay Controller & Endpoints (`GameController.php` & `routes/api.php`)**:
+  - `POST /api/games/{code}/move`: Authoritatively validates turn, evaluates clock countdown, executes move via `ChessEngine`, records PGN, checks end conditions, and broadcasts `MoveMade`.
+  - `POST /api/games/{code}/resign`: Resigns match and awards victory to opponent.
+  - `POST /api/games/{code}/draw-offer`: Issues draw offer to opponent.
+  - `POST /api/games/{code}/draw-accept`: Concludes match in mutually agreed draw.
+  - `POST /api/games/{code}/draw-decline`: Safely clears pending draw offer.
+  - `POST /api/games/{code}/timeout-claim`: Claims win when opponent's clock reaches 0.
+- **Real-Time WebSocket Events (`backend/app/Events/`)**:
+  - Created `MoveMade`, `GameEnded`, `DrawOffered`, `DrawDeclined`, and `PlayerJoined` broadcasting immediately via `ShouldBroadcastNow` on `game.{code}` channel.
+- **Comprehensive Gameplay Feature Test Suite (`GamePlayTest.php`)**:
+  - 9 feature tests verifying legal moves, out-of-turn rejection, illegal moves, spectator blocking, checkmate resolution, resignation, draw flow, and timeout victory.
+- **Frontend Real-Time Client (`frontend/src/lib/echo.ts`)**:
+  - Configured Laravel Echo with Reverb WebSockets for instant bidirectional event delivery.
+- **Crisp SVG Chess Pieces (`ChessPiece.tsx`)**:
+  - Designed vector SVG components for all 12 pieces with theme-adaptive styling.
+- **Interactive Chessboard Component (`Chessboard.tsx`)**:
+  - Optimistic legal move dots and capture rings powered by `chess.js`.
+  - Click-to-move and drag-and-drop interaction.
+  - Automatic board flipping based on assigned player color (White / Black).
+  - Last-move square highlights and king-in-check crimson glow indicator.
+  - Interactive pawn promotion modal.
+  - Multi-theme support (`emerald`, `slate`, `amber`).
+- **Full Multiplayer Game Room Page (`GameRoomPage.tsx`)**:
+  - Room view at `/play/:code` with player cards, ratings, and live countdown clocks.
+  - Subscribes to Reverb events (`.move.made`, `.player.joined`, `.game.ended`, `.draw.offered`).
+  - Formatted PGN move notation history list with auto-scroll.
+  - Resign and draw offer action buttons with confirmation dialogs.
+  - Waiting room lobby with one-click room code and invite link copying.
+  - Game over celebratory / draw victory modal.
+- **Navigation & Dashboard Integration**:
+  - Added protected `/play/:code` route in `App.tsx`.
+  - Updated `DashboardPage.tsx` and `ActiveGamesList.tsx` to navigate directly to `/play/${game.code}` when creating, joining, or resuming games.
+
+### Added (Phase 3)
 - **Authoritative Game Model & Resources**: Built `Game.php` with player relationships and helper scopes, along with `GameResource.php` for safe API serialization.
 - **Dashboard & Matchmaking Endpoints**: Implemented `GET /api/dashboard` (active games, recent matches, leaderboard, player stats), `POST /api/games` (create room with time controls: bullet, blitz, rapid, classical), `POST /api/games/join` (join room by invite code), and `GET /api/games/{code}`.
 - **Comprehensive Dashboard Test Suite**: Implemented `DashboardTest.php` testing dashboard data retrieval, game room generation, 2-player room joining, and code validation (16 total tests passing, 78 assertions).
