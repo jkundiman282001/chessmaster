@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+  --color-chess-dark: #1e293b;
+  --color-chess-light: #f8fafc;
+  --color-board-dark: #769656;
+  --color-board-light: #eeeed2;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #0f172a;
+  color: #f8fafc;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}

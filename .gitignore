@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files
+.env
+.env.backup
+.env.production
+.env.local
+
+# Logs and databases
+*.log
+*.sqlite
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Build outputs
+dist/
+dist-ssr/
+public/build/
+public/hot/
+public/storage/
+
+# Testing and caches
+.phpunit.cache/
+.phpunit.result.cache
+storage/pail/
+storage/*.key

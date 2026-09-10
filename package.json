@@ -1,0 +1,26 @@
+{
+  "name": "chessmaster",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multiplayer Chess Web Application",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "dev:backend": "cd backend && php artisan serve",
+    "dev:reverb": "cd backend && php artisan reverb:start",
+    "build": "npm --prefix frontend run build",
+    "test:backend": "cd backend && php artisan test",
+    "migrate": "cd backend && php artisan migrate"
+  },
+  "keywords": [
+    "chess",
+    "multiplayer",
+    "laravel",
+    "react",
+    "typescript",
+    "postgresql",
+    "websockets",
+    "reverb"
+  ],
+  "author": "",
+  "license": "MIT"
+}
