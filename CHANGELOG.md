@@ -10,6 +10,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased] - 2026-09-10
 
 ### Added
+- **Phase 3 Games Schema & Migration**: Created `games` table in PostgreSQL with room code index, white/black player foreign keys, authoritative FEN, PGN history, clock time tracking, turn state, and end reasons.
+- **Authoritative Game Model & Resources**: Built `Game.php` with player relationships and helper scopes, along with `GameResource.php` for safe API serialization.
+- **Dashboard & Matchmaking Endpoints**: Implemented `GET /api/dashboard` (active games, recent matches, leaderboard, player stats), `POST /api/games` (create room with time controls: bullet, blitz, rapid, classical), `POST /api/games/join` (join room by invite code), and `GET /api/games/{code}`.
+- **Comprehensive Dashboard Test Suite**: Implemented `DashboardTest.php` testing dashboard data retrieval, game room generation, 2-player room joining, and code validation (16 total tests passing, 78 assertions).
+- **Authenticated Dashboard UI**: Built `DashboardPage.tsx` with player summary, ELO rating card, win-rate breakdown, and match history.
+- **Matchmaking Modals & Lists**: Created `CreateGameModal` (with custom time controls & color selection), `JoinGameModal` (code entry), `ActiveGamesList` (live status badges & copy code action), and `MatchHistoryList` (outcomes & time controls).
+- **Community Leaderboard & Cosmetics Loadout Hook**: Created `LeaderboardCard` (top platform players) and `CosmeticsPreviewCard` (active default theme with architectural slots for future skin unlocks).
+
+### Added (Phase 2)
 - **Phase 2 Public Landing Page**: Built comprehensive responsive landing page (`LandingPage.tsx`) with dark chess theme, hero presentation, architectural pillar cards, and 3-step gameplay onboarding.
 - **Themeable Chessboard Preview**: Created `BoardPreview.tsx` demonstrating classical piece rendering, coordinate notation, live WebSocket move highlights (e2-e4), and extensible theme token styles (`classic`, `emerald`, `wood`).
 - **React Router Integration**: Added `react-router-dom` with routes for `/` (LandingPage), `/health` (Architecture Diagnostics Hub), and fallback handling.

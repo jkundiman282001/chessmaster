@@ -64,11 +64,11 @@ export function LandingPage() {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
                 <Link
-                  to="/health"
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition"
+                  to="/dashboard"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-sm transition"
                 >
-                  <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                  System Probe
+                  <Trophy className="w-3.5 h-3.5" />
+                  Dashboard
                 </Link>
                 <UserMenu />
               </div>
@@ -121,11 +121,11 @@ export function LandingPage() {
               {isAuthenticated && user ? (
                 <div className="flex items-center gap-3">
                   <Link
-                    to="/health"
+                    to="/dashboard"
                     className="w-full sm:w-auto px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2 transition cursor-pointer"
                   >
                     <Play className="w-4 h-4 fill-white" />
-                    Enter Match Hub (Welcome {user.username})
+                    Enter Match Hub ({user.username})
                   </Link>
                 </div>
               ) : (
@@ -313,10 +313,11 @@ export function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               {isAuthenticated && user ? (
                 <Link
-                  to="/health"
-                  className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-950/60 transition cursor-pointer"
+                  to="/dashboard"
+                  className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-950/60 transition cursor-pointer flex items-center gap-2"
                 >
-                  View System Health & Diagnostic Hub
+                  <Trophy className="w-4 h-4" />
+                  Go to Player Dashboard
                 </Link>
               ) : (
                 <>

@@ -31,4 +31,47 @@ class User extends Authenticatable
             'rating' => 'integer',
         ];
     }
+
+    /**
+     * Games where user plays as White.
+     */
+    public function whiteGames(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Game::class, 'white_player_id');
+    }
+
+    /**
+     * Games where user plays as Black.
+     */
+    public function blackGames(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Game::class, 'black_player_id');
+    }
+
+    /**
+     * Compute real-time match statistics for the user.
+     */
+    public function getStats(): array
+    {
+        $userId = $this->id;
+
+        $completedGames = Game::where(function ($q) use ($userId) {
+            $q->where('white_player_id', $userId)
+              ->orWhere('black_player_id', $userId);
+        })->where('status', 'completed')->get();
+
+        $wins = $completedGames->where('winner_id', $userId)->count();
+        $draws = $completedGames->where('winner_id', null)->count();
+        $total = $completedGames->count();
+        $losses = $total - $wins - $draws;
+        $winRate = $total > 0 ? round(($wins / $total) * 100) : 0;
+
+        return [
+            'total_games' => $total,
+            'wins' => $wins,
+            'losses' => $losses,
+            'draws' => $draws,
+            'win_rate' => $winRate,
+        ];
+    }
 }
