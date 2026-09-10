@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\Chess\ChessEngine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -144,7 +145,7 @@ class GameController extends Controller
         $game->load(['whitePlayer', 'blackPlayer']);
 
         // Broadcast to notify waiting player that game has started
-        broadcast(new PlayerJoined($game));
+        $this->safeBroadcast(new PlayerJoined($game));
 
         return response()->json([
             'message' => 'Successfully joined game match.',
@@ -230,7 +231,7 @@ class GameController extends Controller
             $game->end_reason = 'timeout';
             $game->save();
 
-            broadcast(new GameEnded($game, $game->winner_id, 'timeout'));
+            $this->safeBroadcast(new GameEnded($game, $game->winner_id, 'timeout'));
 
             throw ValidationException::withMessages([
                 'timeout' => 'Time expired! You ran out of time.',
@@ -299,7 +300,7 @@ class GameController extends Controller
         ];
 
         // Broadcast move event
-        broadcast(new MoveMade($game, $moveData, $engineResult));
+        $this->safeBroadcast(new MoveMade($game, $moveData, $engineResult));
 
         return response()->json([
             'message' => 'Move processed.',
@@ -340,7 +341,7 @@ class GameController extends Controller
         $game->save();
         $game->load(['whitePlayer', 'blackPlayer', 'winner']);
 
-        broadcast(new GameEnded($game, $opponent?->id, 'resignation'));
+        $this->safeBroadcast(new GameEnded($game, $opponent?->id, 'resignation'));
 
         return response()->json([
             'message' => 'You have resigned.',
@@ -368,7 +369,7 @@ class GameController extends Controller
         $game->draw_offered_by = $user->id;
         $game->save();
 
-        broadcast(new DrawOffered($game, $user->id));
+        $this->safeBroadcast(new DrawOffered($game, $user->id));
 
         return response()->json([
             'message' => 'Draw offered to opponent.',
@@ -404,7 +405,7 @@ class GameController extends Controller
         $game->save();
         $game->load(['whitePlayer', 'blackPlayer', 'winner']);
 
-        broadcast(new GameEnded($game, null, 'draw_agreement'));
+        $this->safeBroadcast(new GameEnded($game, null, 'draw_agreement'));
 
         return response()->json([
             'message' => 'Draw agreed. Match ended.',
@@ -433,7 +434,7 @@ class GameController extends Controller
         $game->draw_offered_by = null;
         $game->save();
 
-        broadcast(new DrawDeclined($game, $user->id));
+        $this->safeBroadcast(new DrawDeclined($game, $user->id));
 
         return response()->json([
             'message' => 'Draw offer declined.',
@@ -477,11 +478,25 @@ class GameController extends Controller
         $game->save();
         $game->load(['whitePlayer', 'blackPlayer', 'winner']);
 
-        broadcast(new GameEnded($game, $game->winner_id, 'timeout'));
+        $this->safeBroadcast(new GameEnded($game, $game->winner_id, 'timeout'));
 
         return response()->json([
             'message' => 'Claimed win on timeout.',
             'game' => new GameResource($game),
         ]);
+    }
+
+    /**
+     * Safely broadcast events without failing HTTP requests if WebSockets are unreachable.
+     */
+    protected function safeBroadcast(object $event): void
+    {
+        try {
+            broadcast($event);
+        } catch (\Throwable $e) {
+            Log::warning('WebSocket broadcast skipped/failed: ' . $e->getMessage(), [
+                'event' => get_class($event),
+            ]);
+        }
     }
 }

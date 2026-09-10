@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased] - 2026-09-10
 
+### Fixed
+- **Resilient Broadcast & Fallback Architecture**:
+  - Implemented `safeBroadcast()` in `GameController.php` so that moves and game actions never crash with HTTP 500 when the WebSocket server is offline or restarting.
+  - Added seamless HTTP polling fallback in `GameRoomPage.tsx` to keep the chessboard, clocks, and game state 100% functional even if WebSockets are unreachable.
+  - Normalized Reverb host binding to `127.0.0.1` and `0.0.0.0` in `.env` to prevent IPv6 `::1` connection refused errors on Linux/WSL2.
+  - Added visual connection status badge in `GameRoomPage.tsx` header indicating "Live" or "HTTP Sync".
+
 ### Added (Phase 4: Core Multiplayer Chess Gameplay)
 - **Authoritative Server-Side Chess Engine (`ChessEngine.php`)**:
   - Comprehensive FEN parsing and serialization (`parseFen`, `renderFen`).

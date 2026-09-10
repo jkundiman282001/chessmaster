@@ -40,6 +40,7 @@ export function GameRoomPage() {
   const [copiedLink, setCopiedLink] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [boardTheme, setBoardTheme] = useState<'emerald' | 'slate' | 'amber'>('emerald')
+  const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'fallback'>('connecting')
 
   const movesContainerRef = useRef<HTMLDivElement>(null)
 
@@ -90,80 +91,135 @@ export function GameRoomPage() {
     }
   }, [code, user])
 
-  // Subscribe to real-time Reverb channel
+  // Subscribe to real-time Reverb channel with connection state monitoring
   useEffect(() => {
     if (!code) return
 
-    const echo = getEcho()
-    const channelName = `game.${code.toUpperCase()}`
-    const channel = echo.channel(channelName)
+    try {
+      const echo = getEcho()
+      const channelName = `game.${code.toUpperCase()}`
+      const channel = echo.channel(channelName)
 
-    channel.listen('.move.made', (e: MoveEventPayload) => {
-      setGame(prev => {
-        if (!prev) return prev
-        return {
-          ...prev,
-          fen: e.fen,
-          turn: e.turn,
-          status: e.status,
-          white_time_remaining: e.white_time_remaining,
-          black_time_remaining: e.black_time_remaining,
-          last_move_at: e.last_move_at,
-          winner_id: e.winner_id,
-          end_reason: e.end_reason,
-          pgn: e.pgn,
-          draw_offered_by: null,
+      // Monitor WebSocket connection lifecycle
+      const pusher = (echo.connector as any)?.pusher
+      if (pusher?.connection) {
+        if (pusher.connection.state === 'connected') {
+          setWsStatus('connected')
         }
-      })
-
-      setWhiteClock(e.white_time_remaining)
-      setBlackClock(e.black_time_remaining)
-      setLastMove({ from: e.move.from, to: e.move.to })
-      setIsCheck(e.is_check)
-      setDrawOfferIncoming(false)
-      setActionError(null)
-    })
-
-    channel.listen('.player.joined', (e: PlayerJoinedPayload) => {
-      setGame(prev => {
-        if (!prev) return prev
-        return {
-          ...prev,
-          status: e.status,
-          white_player: e.white_player,
-          black_player: e.black_player,
-        }
-      })
-    })
-
-    channel.listen('.game.ended', (e: GameEndedPayload) => {
-      setGame(prev => {
-        if (!prev) return prev
-        return {
-          ...prev,
-          status: 'completed',
-          winner_id: e.winner_id,
-          end_reason: e.end_reason,
-          draw_offered_by: null,
-        }
-      })
-      setDrawOfferIncoming(false)
-    })
-
-    channel.listen('.draw.offered', (e: DrawOfferedPayload) => {
-      if (user && e.offered_by !== user.id) {
-        setDrawOfferIncoming(true)
+        pusher.connection.bind('connected', () => setWsStatus('connected'))
+        pusher.connection.bind('disconnected', () => setWsStatus('fallback'))
+        pusher.connection.bind('unavailable', () => setWsStatus('fallback'))
+        pusher.connection.bind('failed', () => setWsStatus('fallback'))
       }
-    })
 
-    channel.listen('.draw.declined', () => {
-      setDrawOfferIncoming(false)
-    })
+      channel.listen('.move.made', (e: MoveEventPayload) => {
+        setGame(prev => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            fen: e.fen,
+            turn: e.turn,
+            status: e.status,
+            white_time_remaining: e.white_time_remaining,
+            black_time_remaining: e.black_time_remaining,
+            last_move_at: e.last_move_at,
+            winner_id: e.winner_id,
+            end_reason: e.end_reason,
+            pgn: e.pgn,
+            draw_offered_by: null,
+          }
+        })
 
-    return () => {
-      echo.leaveChannel(channelName)
+        setWhiteClock(e.white_time_remaining)
+        setBlackClock(e.black_time_remaining)
+        setLastMove({ from: e.move.from, to: e.move.to })
+        setIsCheck(e.is_check)
+        setDrawOfferIncoming(false)
+        setActionError(null)
+      })
+
+      channel.listen('.player.joined', (e: PlayerJoinedPayload) => {
+        setGame(prev => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            status: e.status,
+            white_player: e.white_player,
+            black_player: e.black_player,
+          }
+        })
+      })
+
+      channel.listen('.game.ended', (e: GameEndedPayload) => {
+        setGame(prev => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            status: 'completed',
+            winner_id: e.winner_id,
+            end_reason: e.end_reason,
+            draw_offered_by: null,
+          }
+        })
+        setDrawOfferIncoming(false)
+      })
+
+      channel.listen('.draw.offered', (e: DrawOfferedPayload) => {
+        if (user && e.offered_by !== user.id) {
+          setDrawOfferIncoming(true)
+        }
+      })
+
+      channel.listen('.draw.declined', () => {
+        setDrawOfferIncoming(false)
+      })
+
+      return () => {
+        echo.leaveChannel(channelName)
+      }
+    } catch {
+      setWsStatus('fallback')
     }
   }, [code, user])
+
+  // Resilient Polling Fallback: keeps gameplay 100% functional even if WebSockets are down
+  useEffect(() => {
+    if (!code || !game || game.status === 'completed') return
+
+    // Poll if waiting for opponent to join, or waiting for opponent to move
+    const shouldPoll = game.status === 'waiting' || (!isUserTurn && game.status === 'in_progress')
+    if (!shouldPoll) return
+
+    const pollTimer = setInterval(async () => {
+      try {
+        const res = await api.get<{ game: Game }>(`/api/games/${code}`)
+        const serverGame = res.data.game
+
+        // Check if server game has progressed
+        if (
+          serverGame.fen !== game.fen ||
+          serverGame.status !== game.status ||
+          serverGame.turn !== game.turn ||
+          serverGame.winner_id !== game.winner_id ||
+          serverGame.draw_offered_by !== game.draw_offered_by ||
+          (serverGame.status === 'in_progress' && game.status === 'waiting')
+        ) {
+          setGame(serverGame)
+          setWhiteClock(serverGame.white_time_remaining)
+          setBlackClock(serverGame.black_time_remaining)
+          if (serverGame.draw_offered_by && user && serverGame.draw_offered_by !== user.id) {
+            setDrawOfferIncoming(true)
+          } else {
+            setDrawOfferIncoming(false)
+          }
+        }
+      } catch {
+        // Silent catch for background poll
+      }
+    }, 2500)
+
+    return () => clearInterval(pollTimer)
+  }, [code, game?.fen, game?.status, game?.turn, game?.winner_id, game?.draw_offered_by, isUserTurn, user])
 
   // Active clock countdown timer
   useEffect(() => {
@@ -205,14 +261,27 @@ export function GameRoomPage() {
 
     setActionError(null)
     try {
-      await api.post(`/api/games/${code}/move`, move)
+      const res = await api.post<{ game: Game; move: any; engine: any }>(`/api/games/${code}/move`, move)
+      const updatedGame = res.data.game
+      setGame(updatedGame)
+      setWhiteClock(updatedGame.white_time_remaining)
+      setBlackClock(updatedGame.black_time_remaining)
       setLastMove({ from: move.from, to: move.to })
+      setIsCheck(res.data.engine?.is_check ?? false)
     } catch (err: any) {
       const msg = err.response?.data?.errors?.move?.[0] ||
         err.response?.data?.errors?.turn?.[0] ||
         err.response?.data?.message ||
         'Move rejected.'
       setActionError(msg)
+
+      // Resynchronize client board with server state to eliminate desync
+      try {
+        const syncRes = await api.get<{ game: Game }>(`/api/games/${code}`)
+        setGame(syncRes.data.game)
+      } catch {
+        // Silent catch
+      }
     }
   }
 
@@ -382,6 +451,18 @@ export function GameRoomPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Real-time sync status */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800/80 border border-slate-700/60">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                wsStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+              }`}
+            />
+            <span className={wsStatus === 'connected' ? 'text-emerald-400' : 'text-amber-300'}>
+              {wsStatus === 'connected' ? 'Live' : 'HTTP Sync'}
+            </span>
+          </div>
+
           {/* Board Theme Selector */}
           <div className="hidden sm:flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/60">
             {(['emerald', 'slate', 'amber'] as const).map(t => (
