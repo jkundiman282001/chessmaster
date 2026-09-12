@@ -113,7 +113,7 @@ export function GameRoomPage() {
       }
 
       channel.listen('.move.made', (e: MoveEventPayload) => {
-        setGame(prev => {
+        setGame((prev) => {
           if (!prev) return prev
           return {
             ...prev,
@@ -139,7 +139,7 @@ export function GameRoomPage() {
       })
 
       channel.listen('.player.joined', (e: PlayerJoinedPayload) => {
-        setGame(prev => {
+        setGame((prev) => {
           if (!prev) return prev
           return {
             ...prev,
@@ -150,53 +150,49 @@ export function GameRoomPage() {
         })
       })
 
-      channel.listen('.game.ended', (e: GameEndedPayload) => {
-        setGame(prev => {
-          if (!prev) return prev
-          return {
-            ...prev,
-            status: 'completed',
-            winner_id: e.winner_id,
-            end_reason: e.end_reason,
-            draw_offered_by: null,
-          }
-        })
-        setDrawOfferIncoming(false)
-      })
-
       channel.listen('.draw.offered', (e: DrawOfferedPayload) => {
         if (user && e.offered_by !== user.id) {
           setDrawOfferIncoming(true)
         }
       })
 
-      channel.listen('.draw.declined', () => {
+      channel.listen('.game.ended', (e: GameEndedPayload) => {
+        setGame((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            status: 'completed',
+            winner_id: e.winner_id,
+            end_reason: e.end_reason,
+          }
+        })
         setDrawOfferIncoming(false)
       })
 
       return () => {
-        echo.leaveChannel(channelName)
+        channel.stopListening('.move.made')
+        channel.stopListening('.player.joined')
+        channel.stopListening('.draw.offered')
+        channel.stopListening('.game.ended')
       }
     } catch {
       setWsStatus('fallback')
     }
   }, [code, user])
 
-  // Resilient Polling Fallback: keeps gameplay 100% functional even if WebSockets are down
+  // HTTP Polling fallback: if spectator or waiting for opponent, sync every 2.5s
   useEffect(() => {
-    if (!code || !game || game.status === 'completed') return
-
-    // Poll if waiting for opponent to join, or waiting for opponent to move
-    const shouldPoll = game.status === 'waiting' || (!isUserTurn && game.status === 'in_progress')
-    if (!shouldPoll) return
+    if (!code) return
 
     const pollTimer = setInterval(async () => {
+      if (isUserTurn) return
+
       try {
         const res = await api.get<{ game: Game }>(`/api/games/${code}`)
         const serverGame = res.data.game
 
-        // Check if server game has progressed
         if (
+          !game ||
           serverGame.fen !== game.fen ||
           serverGame.status !== game.status ||
           serverGame.turn !== game.turn ||
@@ -227,7 +223,7 @@ export function GameRoomPage() {
 
     const timer = setInterval(() => {
       if (game.turn === 'white') {
-        setWhiteClock(prev => {
+        setWhiteClock((prev) => {
           if (prev <= 1) {
             handleTimeoutClaim()
             return 0
@@ -235,7 +231,7 @@ export function GameRoomPage() {
           return prev - 1
         })
       } else {
-        setBlackClock(prev => {
+        setBlackClock((prev) => {
           if (prev <= 1) {
             handleTimeoutClaim()
             return 0
@@ -269,13 +265,14 @@ export function GameRoomPage() {
       setLastMove({ from: move.from, to: move.to })
       setIsCheck(res.data.engine?.is_check ?? false)
     } catch (err: any) {
-      const msg = err.response?.data?.errors?.move?.[0] ||
+      const msg =
+        err.response?.data?.errors?.move?.[0] ||
         err.response?.data?.errors?.turn?.[0] ||
         err.response?.data?.message ||
         'Move rejected.'
       setActionError(msg)
 
-      // Resynchronize client board with server state to eliminate desync
+      // Resynchronize client board with server state
       try {
         const syncRes = await api.get<{ game: Game }>(`/api/games/${code}`)
         setGame(syncRes.data.game)
@@ -301,7 +298,7 @@ export function GameRoomPage() {
     if (!code) return
     try {
       await api.post(`/api/games/${code}/draw-offer`)
-      setGame(prev => prev ? { ...prev, draw_offered_by: user?.id ?? null } : prev)
+      setGame((prev) => (prev ? { ...prev, draw_offered_by: user?.id ?? null } : prev))
     } catch (err: any) {
       setActionError(err.response?.data?.message || 'Failed to offer draw.')
     }
@@ -335,7 +332,7 @@ export function GameRoomPage() {
     try {
       await api.post(`/api/games/${code}/timeout-claim`)
     } catch {
-      // Clock check silently handles or refreshes
+      // Clock check handles
     }
   }
 
@@ -384,25 +381,27 @@ export function GameRoomPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-300">
+      <div className="min-h-screen bg-[#050811] flex flex-col items-center justify-center text-slate-300">
         <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="font-medium text-slate-400">Entering chess room...</p>
+        <p className="font-bold text-slate-400 text-sm">Entering match arena...</p>
       </div>
     )
   }
 
   if (error || !game) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-md w-full text-center">
-          <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Match Not Found</h2>
-          <p className="text-slate-400 text-sm mb-6">{error || 'Game room does not exist or has expired.'}</p>
+      <div className="min-h-screen bg-[#050811] flex flex-col items-center justify-center p-4">
+        <div className="glass-panel border border-white/10 rounded-2xl p-8 max-w-md w-full text-center">
+          <AlertCircle className="w-12 h-12 text-rose-400 mx-auto mb-4" />
+          <h2 className="text-xl font-black text-white mb-2">Match Not Found</h2>
+          <p className="text-slate-400 text-xs sm:text-sm mb-6">
+            {error || 'This game room does not exist or has already expired.'}
+          </p>
           <Link
             to="/dashboard"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+            <ArrowLeft className="w-4 h-4" /> Return to Dashboard
           </Link>
         </div>
       </div>
@@ -412,7 +411,7 @@ export function GameRoomPage() {
   const whitePlayer = game.white_player
   const blackPlayer = game.black_player
 
-  // Identify top and bottom players based on orientation
+  // Identify top and bottom players based on player orientation
   const topPlayer = playerColor === 'black' ? whitePlayer : blackPlayer
   const topClock = playerColor === 'black' ? whiteClock : blackClock
   const isTopTurn = playerColor === 'black' ? game.turn === 'white' : game.turn === 'black'
@@ -428,50 +427,53 @@ export function GameRoomPage() {
   const isDraw = isCompleted && game.winner_id === null
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#050811] text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white relative">
+      {/* Background ambient lighting */}
+      <div className="fixed top-0 left-1/3 w-[800px] h-[300px] bg-gradient-to-b from-emerald-500/10 via-sky-500/5 to-transparent blur-3xl pointer-events-none -z-10" />
+
       {/* Top Navigation Bar */}
-      <header className="h-16 border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between z-10 sticky top-0">
+      <header className="h-16 border-b border-white/5 bg-[#070c18]/80 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between z-20 sticky top-0">
         <div className="flex items-center gap-3">
           <Link
             to="/dashboard"
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
             title="Return to Dashboard"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex items-center gap-2.5">
-            <span className="font-bold text-white tracking-wide">Match</span>
-            <span className="px-2.5 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-xs font-mono font-semibold text-emerald-400">
+            <span className="font-extrabold text-white text-sm sm:text-base tracking-wide">Match</span>
+            <span className="px-2.5 py-0.5 rounded-lg bg-slate-900 border border-white/10 text-xs font-mono font-bold text-emerald-400">
               {game.code}
             </span>
-            <span className="text-xs text-slate-500 font-medium capitalize">
-              • {game.time_control.replace('_', ' ').replace('_', '+')}
+            <span className="text-xs text-slate-400 font-medium hidden sm:inline capitalize">
+              &bull; {game.time_control.replace('_', ' ').replace('_', '+')}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Real-time sync status */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800/80 border border-slate-700/60">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-slate-900/90 border border-white/10">
             <span
               className={`w-2 h-2 rounded-full ${
                 wsStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
               }`}
             />
             <span className={wsStatus === 'connected' ? 'text-emerald-400' : 'text-amber-300'}>
-              {wsStatus === 'connected' ? 'Live' : 'HTTP Sync'}
+              {wsStatus === 'connected' ? 'Live' : 'Polling'}
             </span>
           </div>
 
           {/* Board Theme Selector */}
-          <div className="hidden sm:flex items-center bg-slate-800/80 rounded-lg p-1 border border-slate-700/60">
-            {(['emerald', 'slate', 'amber'] as const).map(t => (
+          <div className="hidden md:flex items-center bg-slate-900/90 rounded-xl p-1 border border-white/10">
+            {(['emerald', 'slate', 'amber'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setBoardTheme(t)}
-                className={`px-2.5 py-1 text-xs rounded font-medium capitalize transition-all ${
+                className={`px-2.5 py-1 text-xs rounded-lg font-semibold capitalize transition-all cursor-pointer ${
                   boardTheme === t
-                    ? 'bg-slate-700 text-emerald-400 shadow-sm'
+                    ? 'bg-slate-700 text-white shadow-sm'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -482,43 +484,43 @@ export function GameRoomPage() {
 
           <button
             onClick={copyRoomCode}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 transition-colors cursor-pointer"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copiedLink ? 'Link Copied!' : 'Share Room'}</span>
+            <span className="hidden sm:inline">{copiedLink ? 'Link Copied!' : 'Share Room'}</span>
           </button>
         </div>
       </header>
 
       {/* Main Game Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left / Center Area: Board & Player Clocks */}
-        <div className="lg:col-span-8 flex flex-col items-center w-full max-w-[620px] mx-auto">
+        {/* Board & Player Clocks Column */}
+        <div className="lg:col-span-8 flex flex-col items-center w-full max-w-[560px] mx-auto">
           {/* Action error notification */}
           {actionError && (
-            <div className="w-full mb-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="w-full mb-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 animate-in fade-in duration-150">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
               <span>{actionError}</span>
             </div>
           )}
 
           {/* Draw Offer Notification Banner */}
           {drawOfferIncoming && (
-            <div className="w-full mb-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/40 text-amber-200 text-sm flex items-center justify-between">
+            <div className="w-full mb-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs sm:text-sm flex items-center justify-between shadow-lg">
               <div className="flex items-center gap-2">
-                <Handshake className="w-5 h-5 text-amber-400" />
-                <span>Opponent has offered a draw.</span>
+                <Handshake className="w-5 h-5 text-amber-400 shrink-0" />
+                <span className="font-semibold">Opponent has offered a draw.</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleAcceptDraw}
-                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-lg transition-colors"
+                  className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl transition cursor-pointer"
                 >
                   Accept
                 </button>
                 <button
                   onClick={handleDeclineDraw}
-                  className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg transition-colors"
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition cursor-pointer"
                 >
                   Decline
                 </button>
@@ -528,54 +530,54 @@ export function GameRoomPage() {
 
           {/* Waiting for Opponent Lobby Banner */}
           {game.status === 'waiting' && (
-            <div className="w-full mb-4 p-5 rounded-2xl bg-slate-900/90 border border-emerald-500/30 text-center shadow-lg">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-3 animate-pulse">
-                <Users className="w-5 h-5" />
+            <div className="w-full mb-4 p-5 rounded-2xl glass-panel border border-emerald-500/30 text-center shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-3 animate-pulse">
+                <Users className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-white mb-1">Waiting for opponent to join...</h3>
-              <p className="text-xs text-slate-400 mb-4">
-                Share this room code with a friend or opponent to start playing.
+              <h3 className="text-base font-extrabold text-white mb-1">Waiting for opponent to join...</h3>
+              <p className="text-xs text-slate-400 mb-4 max-w-sm mx-auto">
+                Share this room code with an opponent to start playing in real time.
               </p>
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-xl font-mono font-bold text-emerald-400 px-4 py-1.5 bg-slate-800 rounded-xl border border-slate-700 tracking-wider">
+              <div className="flex items-center justify-center gap-2.5">
+                <span className="text-xl font-mono font-black text-emerald-400 px-4 py-2 bg-slate-950/80 rounded-xl border border-white/10 tracking-widest">
                   {game.code}
                 </span>
                 <button
                   onClick={copyRoomCode}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shadow-md"
+                  className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
                 >
                   <Share2 className="w-3.5 h-3.5" />
-                  {copiedLink ? 'Copied!' : 'Copy Invite Link'}
+                  <span>{copiedLink ? 'Copied!' : 'Copy Link'}</span>
                 </button>
               </div>
             </div>
           )}
 
           {/* Top Player Card (Opponent) */}
-          <div className="w-full flex items-center justify-between px-3 py-2.5 mb-2 bg-slate-900/80 border border-slate-800/80 rounded-xl">
+          <div className="w-full flex items-center justify-between px-3.5 py-2.5 mb-2.5 glass-card border border-white/10 rounded-2xl">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-300 text-sm">
+              <div className="w-9 h-9 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center font-black text-slate-300 text-sm">
                 {topPlayer?.username ? topPlayer.username[0].toUpperCase() : '?'}
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-sm text-white">{topPlayer?.username || 'Waiting for player...'}</span>
-                  <span className="text-[11px] text-slate-400">({topColorLabel})</span>
+                  <span className="text-[11px] text-slate-400 font-medium">({topColorLabel})</span>
                 </div>
                 {topPlayer && (
-                  <span className="text-xs text-emerald-400 font-medium">{topPlayer.rating} ELO</span>
+                  <span className="text-xs text-amber-400 font-bold font-mono">{topPlayer.rating} ELO</span>
                 )}
               </div>
             </div>
 
             {/* Top Clock */}
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono font-bold text-base transition-all ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-mono font-black text-base sm:text-lg transition-all ${
                 isTopTurn && game.status === 'in_progress'
                   ? topClock <= 30
-                    ? 'bg-rose-950/80 text-rose-400 border border-rose-600/50 animate-pulse'
-                    : 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 shadow-sm'
-                  : 'bg-slate-800/80 text-slate-400 border border-slate-700/60'
+                    ? 'bg-rose-950/80 text-rose-300 border border-rose-500/50 animate-pulse shadow-rose-950/50'
+                    : 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/50 shadow-md'
+                  : 'bg-slate-900/90 text-slate-400 border border-white/5'
               }`}
             >
               <Clock className="w-4 h-4 opacity-75" />
@@ -584,7 +586,7 @@ export function GameRoomPage() {
           </div>
 
           {/* Interactive Chessboard */}
-          <div className="w-full">
+          <div className="w-full flex justify-center">
             <Chessboard
               fen={game.fen}
               turn={game.turn}
@@ -598,19 +600,19 @@ export function GameRoomPage() {
           </div>
 
           {/* Bottom Player Card (User) */}
-          <div className="w-full flex items-center justify-between px-3 py-2.5 mt-2 bg-slate-900/80 border border-slate-800/80 rounded-xl">
+          <div className="w-full flex items-center justify-between px-3.5 py-2.5 mt-2.5 glass-card border border-white/10 rounded-2xl">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-300 text-sm">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-slate-950 font-black text-sm flex items-center justify-center shadow-md">
                 {bottomPlayer?.username ? bottomPlayer.username[0].toUpperCase() : (user?.username?.[0].toUpperCase() ?? 'U')}
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-sm text-white">
-                    {bottomPlayer?.username || user?.username} {playerColor && <span className="text-emerald-400 text-xs">(You)</span>}
+                    {bottomPlayer?.username || user?.username} {playerColor && <span className="text-emerald-400 text-xs font-semibold">(You)</span>}
                   </span>
-                  <span className="text-[11px] text-slate-400">({bottomColorLabel})</span>
+                  <span className="text-[11px] text-slate-400 font-medium">({bottomColorLabel})</span>
                 </div>
-                <span className="text-xs text-emerald-400 font-medium">
+                <span className="text-xs text-amber-400 font-bold font-mono">
                   {(bottomPlayer?.rating ?? user?.rating) || 1200} ELO
                 </span>
               </div>
@@ -618,32 +620,75 @@ export function GameRoomPage() {
 
             {/* Bottom Clock */}
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono font-bold text-base transition-all ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-mono font-black text-base sm:text-lg transition-all ${
                 isBottomTurn && game.status === 'in_progress'
                   ? bottomClock <= 30
-                    ? 'bg-rose-950/80 text-rose-400 border border-rose-600/50 animate-pulse'
-                    : 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 shadow-sm'
-                  : 'bg-slate-800/80 text-slate-400 border border-slate-700/60'
+                    ? 'bg-rose-950/80 text-rose-300 border border-rose-500/50 animate-pulse'
+                    : 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/50 shadow-md'
+                  : 'bg-slate-900/90 text-slate-400 border border-white/5'
               }`}
             >
               <Clock className="w-4 h-4 opacity-75" />
               <span>{formatTime(bottomClock)}</span>
             </div>
           </div>
+
+          {/* Mobile Fast In-game Controls */}
+          {playerColor && game.status === 'in_progress' && (
+            <div className="w-full mt-3 flex items-center justify-between gap-3">
+              <button
+                onClick={handleOfferDraw}
+                disabled={game.draw_offered_by === user?.id}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/10 text-xs font-bold text-slate-300 disabled:opacity-50 transition cursor-pointer"
+              >
+                <Handshake className="w-4 h-4 text-amber-400" />
+                <span>{game.draw_offered_by === user?.id ? 'Draw Offered' : 'Offer Draw'}</span>
+              </button>
+
+              <button
+                onClick={() => setShowResignConfirm(true)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-xs font-bold text-rose-400 transition cursor-pointer"
+              >
+                <Flag className="w-4 h-4" />
+                <span>Resign</span>
+              </button>
+            </div>
+          )}
+
+          {/* Resign Confirmation Popover */}
+          {showResignConfirm && (
+            <div className="w-full mt-3 p-4 bg-rose-950/40 border border-rose-500/40 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in duration-150">
+              <span className="text-xs text-rose-200 font-bold">Are you sure you want to resign?</span>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handleResign}
+                  className="flex-1 sm:flex-initial px-4 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                >
+                  Confirm Resign
+                </button>
+                <button
+                  onClick={() => setShowResignConfirm(false)}
+                  className="flex-1 sm:flex-initial px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right Sidebar: Moves Notation & Game Actions */}
+        {/* Right Sidebar: Status, Notation & Match Actions */}
         <div className="lg:col-span-4 flex flex-col gap-4 w-full">
           {/* Status Badge Card */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg">
+          <div className="glass-panel border border-white/10 rounded-2xl sm:rounded-3xl p-5 shadow-lg">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Match Status</span>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${
+                className={`px-2.5 py-0.5 rounded-full text-xs font-bold capitalize ${
                   game.status === 'in_progress'
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
                     : game.status === 'waiting'
-                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                    ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
                     : 'bg-slate-800 text-slate-400 border border-slate-700'
                 }`}
               >
@@ -652,17 +697,17 @@ export function GameRoomPage() {
             </div>
 
             {game.status === 'in_progress' && (
-              <div className="flex items-center gap-2 text-sm font-semibold">
+              <div className="flex items-center gap-2.5 text-sm font-bold">
                 <div
-                  className={`w-3 h-3 rounded-full ${
-                    game.turn === 'white' ? 'bg-white border border-slate-400' : 'bg-slate-900 border border-slate-600'
+                  className={`w-3.5 h-3.5 rounded-full shadow-sm ${
+                    game.turn === 'white' ? 'bg-white border border-slate-300' : 'bg-slate-950 border border-slate-700'
                   }`}
                 />
                 <span className="text-white">
-                  {game.turn === 'white' ? 'White' : 'Black'}'s turn to move
+                  {game.turn === 'white' ? 'White' : 'Black'}'s turn
                 </span>
                 {isUserTurn && (
-                  <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold ml-auto">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold ml-auto border border-emerald-500/30">
                     Your Turn
                   </span>
                 )}
@@ -670,12 +715,14 @@ export function GameRoomPage() {
             )}
 
             {isCompleted && (
-              <div className="pt-2 border-t border-slate-800 mt-2">
-                <p className="text-sm font-bold text-white flex items-center gap-2">
+              <div className="pt-3 border-t border-white/10 mt-3">
+                <p className="text-sm font-extrabold text-white flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-amber-400" />
-                  {isDraw ? 'Game Drawn' : `${game.winner_id === whitePlayer?.id ? whitePlayer?.username : blackPlayer?.username} Won!`}
+                  {isDraw
+                    ? 'Game Drawn'
+                    : `${game.winner_id === whitePlayer?.id ? whitePlayer?.username : blackPlayer?.username} Won!`}
                 </p>
-                <p className="text-xs text-slate-400 capitalize mt-0.5">
+                <p className="text-xs text-slate-400 capitalize mt-1">
                   Reason: {game.end_reason?.replace('_', ' ')}
                 </p>
               </div>
@@ -683,24 +730,24 @@ export function GameRoomPage() {
           </div>
 
           {/* Moves History Notation Table */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col h-[320px] shadow-lg">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Notation (PGN)</span>
-              <span className="text-xs text-slate-500 font-mono">{parsedMoves.length} moves</span>
+          <div className="glass-panel border border-white/10 rounded-2xl sm:rounded-3xl p-5 flex flex-col h-[320px] shadow-lg">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Notation (PGN)</span>
+              <span className="text-xs text-slate-400 font-mono font-semibold">{parsedMoves.length} moves</span>
             </div>
 
             <div
               ref={movesContainerRef}
-              className="flex-1 overflow-y-auto divide-y divide-slate-800/40 text-xs font-mono py-2"
+              className="flex-1 overflow-y-auto divide-y divide-white/5 text-xs font-mono py-2"
             >
               {parsedMoves.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-slate-500 text-xs">
                   No moves played yet
                 </div>
               ) : (
-                parsedMoves.map(m => (
-                  <div key={m.number} className="grid grid-cols-12 py-1.5 px-2 hover:bg-slate-800/40 rounded">
-                    <span className="col-span-2 text-slate-500 font-semibold">{m.number}.</span>
+                parsedMoves.map((m) => (
+                  <div key={m.number} className="grid grid-cols-12 py-1.5 px-2 hover:bg-white/[0.02] rounded-lg">
+                    <span className="col-span-2 text-slate-500 font-bold">{m.number}.</span>
                     <span className="col-span-5 text-slate-200 font-medium">{m.white}</span>
                     <span className="col-span-5 text-slate-200 font-medium">{m.black || ''}</span>
                   </div>
@@ -709,59 +756,15 @@ export function GameRoomPage() {
             </div>
           </div>
 
-          {/* Action Control Buttons */}
-          {playerColor && game.status === 'in_progress' && (
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-lg">
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={handleOfferDraw}
-                  disabled={game.draw_offered_by === user?.id}
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 disabled:opacity-50 transition-colors"
-                >
-                  <Handshake className="w-4 h-4 text-amber-400" />
-                  {game.draw_offered_by === user?.id ? 'Draw Offered' : 'Offer Draw'}
-                </button>
-
-                <button
-                  onClick={() => setShowResignConfirm(true)}
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-xs font-semibold text-rose-400 transition-colors"
-                >
-                  <Flag className="w-4 h-4" /> Resign
-                </button>
-              </div>
-
-              {/* Resign Confirmation Popover */}
-              {showResignConfirm && (
-                <div className="p-3 bg-rose-950/40 border border-rose-500/40 rounded-xl flex flex-col gap-2">
-                  <p className="text-xs text-rose-300 font-medium">Are you sure you want to resign?</p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleResign}
-                      className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg transition-colors"
-                    >
-                      Confirm Resign
-                    </button>
-                    <button
-                      onClick={() => setShowResignConfirm(false)}
-                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Game Over Actions */}
+          {/* Game Over Actions Card */}
           {isCompleted && (
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 text-center flex flex-col gap-3 shadow-lg">
-              <div className="w-12 h-12 rounded-full bg-amber-400/10 text-amber-400 flex items-center justify-center mx-auto">
+            <div className="glass-panel border border-white/10 rounded-2xl sm:rounded-3xl p-5 text-center flex flex-col gap-3 shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-amber-400/10 border border-amber-400/20 text-amber-400 flex items-center justify-center mx-auto">
                 <Trophy className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="text-base font-bold text-white">
-                  {isDraw ? 'Game Ended in a Draw' : isWinner ? 'Victory!' : 'Defeat'}
+                <h4 className="text-base font-extrabold text-white">
+                  {isDraw ? 'Game Concluded in Draw' : isWinner ? 'Victory!' : 'Defeat'}
                 </h4>
                 <p className="text-xs text-slate-400 capitalize mt-1">
                   Ended by {game.end_reason?.replace('_', ' ')}
@@ -769,9 +772,9 @@ export function GameRoomPage() {
               </div>
               <Link
                 to="/dashboard"
-                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors mt-2"
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-xs transition cursor-pointer shadow-lg shadow-emerald-950/50 mt-1"
               >
-                Return to Dashboard
+                Return to Match Hub
               </Link>
             </div>
           )}

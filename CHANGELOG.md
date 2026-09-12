@@ -7,7 +7,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased] - 2026-09-10
+## [Unreleased] - 2026-09-12
+
+### Changed
+- **Comprehensive Modern UI & Responsive Redesign**:
+  - **Global Theme & Styling (`frontend/src/index.css`)**:
+    - Replaced retro pixel-art theme with modern luxury dark mode palette (`#050811`, `#070c18`, `#0b101f`).
+    - Added glassmorphic utility classes (`.glass-panel`, `.glass-card`), subtle glowing borders (`.glow-emerald`, `.glow-amber`), gradient text utilities, and modern scrollbars.
+    - Set `touch-action: manipulation` and tap-highlight suppression for mobile responsiveness.
+  - **Landing Page (`LandingPage.tsx` & `BoardPreview.tsx`)**:
+    - Removed retro fonts (`Press Start 2P`, `VT323`) and CRT scanline styling in favor of crisp modern typography.
+    - Upgraded `BoardPreview.tsx` to render crisp vector SVG chess pieces with interactive legal move indicators and board theme switcher.
+    - Redesigned hero section with glowing gradient pill tags, high-impact headline, responsive CTA button grouping, and interactive stats cards.
+    - Modernized architecture features grid and 3-step interactive "How It Works" workflow.
+  - **Authentication Experience (`AuthModal.tsx` & `UserMenu.tsx`)**:
+    - Transformed `AuthModal` into a luxury glassmorphic dialog with seamless mode toggling, refined inputs with emerald focus rings, and mobile-drawer scrollable styling.
+    - Enhanced `UserMenu` with avatar ring, rating badge, ELO summary, and backdrop blur dropdown menu.
+  - **Dashboard Hub (`DashboardPage.tsx` and subcomponents)**:
+    - Redesigned player header banner with prominent initial badge, competitor flair, and instant match creation/join buttons.
+    - Modernized 4-metric statistics grid (Rating, Win Rate, Matches, W/L/D record) with icons and trend labels.
+    - Refreshed `ActiveGamesList.tsx` and `MatchHistoryList.tsx` with responsive cards, turn indicators, 1-click room code copying, and review links.
+    - Upgraded `LeaderboardCard.tsx` with gold/silver/bronze podium rank badges and current player highlight.
+    - Polished `CreateGameModal.tsx` and `JoinGameModal.tsx` with format speed badges (Bullet, Blitz, Rapid, Classical) and room code sharing.
+  - **Gameplay & Arena Experience (`GameRoomPage.tsx` & `Chessboard.tsx`)**:
+    - Implemented mobile-first layout: opponent HUD stacked directly above board, user HUD stacked below board, with touch-optimized squares (`touch-action: manipulation`) and responsive dimensions (`max-w-[min(100vw-1.5rem,540px)]`).
+    - Enhanced digital clocks with &le;30s countdown warning pulses and glowing turn indicators.
+    - Placed quick action bar (Offer Draw, Resign) directly under player bar for rapid thumb reach on mobile screens.
+    - Provided responsive notation drawer and victory/draw game completion cards.
+  - **System Diagnostics (`HealthPage.tsx`)**:
+    - Refreshed architecture telemetry grid, probe cards, and progress roadmap to match the modern dark obsidian theme.
+
+## [Phase 4] - 2026-09-10
 
 ### Fixed
 - **Resilient Broadcast & Fallback Architecture**:

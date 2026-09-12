@@ -10,6 +10,9 @@ import {
   Play,
   LogIn,
   Activity,
+  Layers,
+  Users,
+  Lock,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { AuthModal } from '../components/auth/AuthModal'
@@ -27,440 +30,308 @@ export function LandingPage() {
   }
 
   return (
-    <div
-      className="min-h-screen text-[var(--px-cream)] flex flex-col selection:bg-[var(--px-amber)] selection:text-[var(--px-ink)]"
-      style={{ backgroundColor: 'var(--px-bg)', fontFamily: 'var(--font-body)' }}
-    >
-      {/* Design tokens, retro pixel type, and structural utilities.
-          In production, move this into a global stylesheet / index.html <link>
-          rather than an inline <style> tag. */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+    <div className="min-h-screen bg-[#050811] text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white relative overflow-hidden">
+      {/* Background ambient lighting effects */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-emerald-500/10 via-sky-500/5 to-transparent blur-3xl pointer-events-none -z-10" />
+      <div className="fixed bottom-0 right-0 w-[600px] h-[500px] bg-gradient-to-tl from-indigo-500/10 via-emerald-500/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
-        :root {
-          --font-display: 'Press Start 2P', monospace;
-          --font-body: 'VT323', monospace;
-
-          --px-bg: #0b0e1a;
-          --px-panel: #121729;
-          --px-line: #2a3358;
-          --px-ink: #05060b;
-          --px-cream: #f4ecd8;
-          --px-muted: #8b93b8;
-          --px-amber: #ffb347;
-          --px-crimson: #ef5b5b;
-        }
-
-        .font-display { font-family: var(--font-display); }
-
-        .pixel-corners {
-          clip-path: polygon(
-            0 10px, 10px 10px, 10px 0,
-            calc(100% - 10px) 0, calc(100% - 10px) 10px, 100% 10px,
-            100% calc(100% - 10px), calc(100% - 10px) calc(100% - 10px), calc(100% - 10px) 100%,
-            10px 100%, 10px calc(100% - 10px), 0 calc(100% - 10px)
-          );
-        }
-        .pixel-corners-sm {
-          clip-path: polygon(
-            0 4px, 4px 4px, 4px 0,
-            calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
-            100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
-            4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)
-          );
-        }
-        .pixel-btn {
-          transition: transform 0.08s steps(2), box-shadow 0.08s steps(2);
-          box-shadow: 4px 4px 0 0 var(--px-ink);
-        }
-        .pixel-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 0 var(--px-ink); }
-        .pixel-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 0 var(--px-ink); }
-
-        @keyframes pixelBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-
-        .scanlines::before {
-          content: '';
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          z-index: 50;
-          background: repeating-linear-gradient(
-            0deg,
-            rgba(0,0,0,0.12) 0px,
-            rgba(0,0,0,0.12) 1px,
-            transparent 1px,
-            transparent 3px
-          );
-          opacity: 0.35;
-        }
-      `}</style>
-
-      <div className="scanlines flex flex-col min-h-screen">
-        {/* Navigation Header */}
-        <header
-          className="sticky top-0 z-40"
-          style={{ backgroundColor: 'var(--px-panel)', borderBottom: '3px solid var(--px-line)' }}
-        >
-          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className="pixel-corners-sm w-10 h-10 flex items-center justify-center text-xl"
-                style={{ backgroundColor: 'var(--px-amber)', color: 'var(--px-ink)', border: '2px solid var(--px-ink)' }}
-              >
-                &#9823;
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-display text-[13px] tracking-tight text-[var(--px-cream)]">
-                  CHESSMASTER
+      {/* Navigation Header */}
+      <header className="sticky top-0 z-40 bg-[#070c18]/80 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+          {/* Brand Logo */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-xl text-slate-950 font-black shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
+              ♟
+            </div>
+            <div>
+              <span className="font-extrabold text-lg tracking-tight text-white flex items-center gap-2">
+                Chessmaster
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Online
                 </span>
-                <span
-                  className="pixel-corners-sm text-[9px] font-display px-1.5 py-1"
-                  style={{ backgroundColor: 'var(--px-crimson)', color: 'var(--px-ink)' }}
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
+            <a href="#features" className="hover:text-emerald-400 transition-colors">
+              Architecture & Features
+            </a>
+            <a href="#how-it-works" className="hover:text-emerald-400 transition-colors">
+              How It Works
+            </a>
+            <Link
+              to="/health"
+              className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors"
+            >
+              <Activity className="w-4 h-4 text-emerald-400" />
+              <span>System Health</span>
+            </Link>
+          </nav>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-3">
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/dashboard"
+                  className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-900/40 hover:shadow-emerald-900/60 transition-all cursor-pointer"
                 >
-                  PH.2
-                </span>
+                  <Trophy className="w-3.5 h-3.5" />
+                  <span>Match Hub</span>
+                </Link>
+                <UserMenu />
               </div>
+            ) : (
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  onClick={() => openAuth('login')}
+                  className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => openAuth('register')}
+                  className="flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all cursor-pointer"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          {/* Left Column: Headline & Call To Action */}
+          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+            {/* Tag Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-emerald-500/30 shadow-lg backdrop-blur-md text-xs font-semibold text-emerald-300">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              <span>Next-Generation Multiplayer Chess Engine</span>
             </div>
 
-            {/* Center navigation links */}
-            <nav className="hidden md:flex items-center gap-6 text-base text-[var(--px-muted)]">
-              <a href="#features" className="hover:text-[var(--px-amber)] transition">
-                Architecture &amp; features
-              </a>
-              <a href="#how-it-works" className="hover:text-[var(--px-amber)] transition">
-                How it works
-              </a>
-              <Link to="/health" className="flex items-center gap-1.5 hover:text-[var(--px-amber)] transition">
-                <Activity className="w-4 h-4" />
-                API diagnostics
-              </Link>
-            </nav>
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.15]">
+              Every move <span className="text-gradient-emerald">verified</span>.
+              <br />
+              Every player <span className="text-gradient">ranked</span>.
+            </h1>
 
-            {/* Right Action Buttons */}
-            <div className="flex items-center gap-3">
+            {/* Subheading */}
+            <p className="text-slate-400 text-base sm:text-lg lg:text-xl max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+              A high-performance chess arena designed with server-authoritative move validation, zero client trust, real-time Reverb WebSockets, and standard 1200 ELO competitive calibration.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
               {isAuthenticated && user ? (
-                <div className="flex items-center gap-3">
-                  <Link
-                    to="/dashboard"
-                    className="pixel-corners-sm pixel-btn hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-sm font-display"
-                    style={{ backgroundColor: 'var(--px-amber)', color: 'var(--px-ink)', border: '2px solid var(--px-ink)' }}
-                  >
-                    <Trophy className="w-3.5 h-3.5" />
-                    Dashboard
-                  </Link>
-                  <UserMenu />
-                </div>
+                <Link
+                  to="/dashboard"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-sm shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+                >
+                  <Play className="w-4 h-4 fill-slate-950" />
+                  <span>Enter Match Hub ({user.username})</span>
+                </Link>
               ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => openAuth('login')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-base text-[var(--px-muted)] hover:text-[var(--px-cream)] transition cursor-pointer"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    Sign in
-                  </button>
+                <>
                   <button
                     onClick={() => openAuth('register')}
-                    className="pixel-corners-sm pixel-btn flex items-center gap-1.5 px-3.5 py-1.5 text-[11px] font-display cursor-pointer"
-                    style={{ backgroundColor: 'var(--px-amber)', color: 'var(--px-ink)', border: '2px solid var(--px-ink)' }}
+                    className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-sm shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer group"
                   >
-                    Play free
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <Play className="w-4 h-4 fill-slate-950" />
+                    <span>Create Account &amp; Play</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </button>
-                </div>
+
+                  <button
+                    onClick={() => openAuth('login')}
+                    className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-sm border border-slate-700/80 backdrop-blur-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4 text-slate-400" />
+                    <span>Existing Player Sign In</span>
+                  </button>
+                </>
               )}
             </div>
-          </div>
-        </header>
 
-        {/* Hero Section */}
-        <section className="relative pt-14 pb-20 md:pt-20 md:pb-28" style={{ borderBottom: '3px solid var(--px-line)' }}>
-          <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
-            {/* Hero Left Column */}
-            <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
-              <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl text-[var(--px-cream)] leading-[1.6]">
-                Every move verified.
-                <br />
-                Every player ranked.
-              </h1>
-
-              <p className="text-[var(--px-muted)] text-xl sm:text-2xl max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                Real-time online chess with server-authoritative move validation, zero cheat
-                tolerance, native WebSockets, and standard 1200 ELO competitive rating for every
-                new player.
-              </p>
-
-              {/* CTA Button Group */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
-                {isAuthenticated && user ? (
-                  <Link
-                    to="/dashboard"
-                    className="pixel-corners pixel-btn w-full sm:w-auto px-6 py-4 text-sm font-display flex items-center justify-center gap-2 cursor-pointer"
-                    style={{ backgroundColor: 'var(--px-amber)', color: 'var(--px-ink)', border: '3px solid var(--px-ink)' }}
-                  >
-                    <Play className="w-4 h-4 fill-[var(--px-ink)]" />
-                    Enter match hub ({user.username})
-                  </Link>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => openAuth('register')}
-                      className="pixel-corners pixel-btn w-full sm:w-auto px-6 py-4 text-sm font-display flex items-center justify-center gap-2 cursor-pointer"
-                      style={{ backgroundColor: 'var(--px-amber)', color: 'var(--px-ink)', border: '3px solid var(--px-ink)' }}
-                    >
-                      <Play className="w-4 h-4 fill-[var(--px-ink)]" />
-                      Create account &amp; play
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-
-                    <button
-                      onClick={() => openAuth('login')}
-                      className="pixel-corners pixel-btn w-full sm:w-auto px-6 py-4 text-sm font-display flex items-center justify-center gap-2 cursor-pointer"
-                      style={{ backgroundColor: 'var(--px-panel)', color: 'var(--px-cream)', border: '3px solid var(--px-line)' }}
-                    >
-                      <LogIn className="w-4 h-4" />
-                      Existing player login
-                    </button>
-                  </>
-                )}
-              </div>
-
-              {/* Stat Cartridges */}
-              <div className="pt-6 grid grid-cols-3 gap-3 max-w-md mx-auto lg:mx-0">
-                {[
-                  { value: '100%', label: 'Server validated', icon: ShieldCheck, color: 'var(--px-amber)' },
-                  { value: '<5ms', label: 'Reverb WebSockets', icon: Zap, color: 'var(--px-crimson)' },
-                  { value: '1200', label: 'Starting ELO', icon: Trophy, color: '#7fd1ff' },
-                ].map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="pixel-corners-sm px-2.5 py-3 text-left"
-                    style={{ backgroundColor: 'var(--px-panel)', border: '2px solid var(--px-line)' }}
-                  >
-                    <div className="font-display text-sm text-[var(--px-cream)] flex items-center gap-1.5 mb-1.5">
-                      {stat.value}
-                    </div>
-                    <div className="text-[13px] text-[var(--px-muted)] flex items-center gap-1">
-                      <stat.icon className="w-3.5 h-3.5 shrink-0" style={{ color: stat.color }} />
-                      {stat.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Hero Right Column: Interactive Themeable Chessboard */}
-            <div className="lg:col-span-5 flex justify-center pt-6 lg:pt-0">
-              <BoardPreview theme="emerald" />
-            </div>
-          </div>
-        </section>
-
-        {/* Feature Highlights Section */}
-        <section id="features" className="py-20" style={{ borderBottom: '3px solid var(--px-line)', backgroundColor: 'var(--px-panel)' }}>
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <h2 className="font-display text-xl sm:text-2xl text-[var(--px-cream)] leading-loose mb-4">
-                Architecture built with chess integrity
-              </h2>
-              <p className="text-[var(--px-muted)] text-lg sm:text-xl">
-                Unlike simplistic board games, chess demands uncompromising server authority,
-                instant clock synchronization, and anti-cheat enforcement.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Metric Highlights Pills */}
+            <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto lg:mx-0">
               {[
-                {
-                  icon: ShieldCheck,
-                  color: 'var(--px-amber)',
-                  title: 'Authoritative validation',
-                  body: 'Client moves are treated as intent. The server chess engine parses the FEN, verifies legality, turns, checks, and timers before committing state.',
-                },
-                {
-                  icon: Zap,
-                  color: 'var(--px-crimson)',
-                  title: 'Native WebSockets',
-                  body: 'Powered by first-party Laravel Reverb. Synchronized move broadcasts, spectator hooks, and authoritative game timers without third-party latency.',
-                },
-                {
-                  icon: Trophy,
-                  color: '#7fd1ff',
-                  title: '1200 ELO calibration',
-                  body: 'Every new competitor enters the platform calibrated at standard 1200 ELO. Indexed database schemas keep matchmaking and leaderboards fast.',
-                },
-                {
-                  icon: Sparkles,
-                  color: '#c084fc',
-                  title: 'Cosmetics extensibility',
-                  body: 'Themeable component abstractions and extensible inventory schemas ready to receive custom board skins and piece sets, no refactoring required.',
-                },
-              ].map((f) => (
+                { label: 'Authority', value: '100% Server', icon: ShieldCheck, color: 'text-emerald-400' },
+                { label: 'Latency', value: '<5ms Ping', icon: Zap, color: 'text-amber-400' },
+                { label: 'Starting ELO', value: '1200 Rating', icon: Trophy, color: 'text-sky-400' },
+                { label: 'Security', value: 'Anti-Cheat', icon: Lock, color: 'text-purple-400' },
+              ].map((stat) => (
                 <div
-                  key={f.title}
-                  className="pixel-corners p-6"
-                  style={{ backgroundColor: 'var(--px-bg)', border: '2px solid var(--px-line)' }}
+                  key={stat.label}
+                  className="p-3 rounded-xl bg-slate-900/60 border border-white/5 backdrop-blur-sm"
                 >
-                  <div
-                    className="pixel-corners-sm w-11 h-11 flex items-center justify-center mb-5"
-                    style={{ backgroundColor: 'var(--px-panel)', border: `2px solid ${f.color}` }}
-                  >
-                    <f.icon className="w-5 h-5" style={{ color: f.color }} />
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+                    <stat.icon className={`w-3.5 h-3.5 ${stat.color}`} />
+                    <span>{stat.label}</span>
                   </div>
-                  <h3 className="font-display text-[13px] text-[var(--px-cream)] leading-loose mb-2.5">{f.title}</h3>
-                  <p className="text-base text-[var(--px-muted)] leading-relaxed">{f.body}</p>
+                  <div className="font-mono font-bold text-sm text-white">{stat.value}</div>
                 </div>
               ))}
             </div>
           </div>
-        </section>
 
-        {/* How It Works Section */}
-        <section id="how-it-works" className="py-20" style={{ borderBottom: '3px solid var(--px-line)' }}>
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <h2 className="font-display text-xl sm:text-2xl text-[var(--px-cream)] leading-loose mb-4">
-                How to play in three steps
-              </h2>
-              <p className="text-[var(--px-muted)] text-lg sm:text-xl">
-                Go from guest to grandmaster with zero complex setup.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  n: '1',
-                  title: 'Create player profile',
-                  body: 'Register with a unique username and email. Your account is immediately initialized with a 1200 ELO rating and secure session cookies.',
-                  active: true,
-                },
-                {
-                  n: '2',
-                  title: 'Join lobby or create room',
-                  body: 'Queue for instant matchmaking or generate a custom match link to challenge a friend to a blitz, rapid, or standard game.',
-                  active: false,
-                },
-                {
-                  n: '3',
-                  title: 'Authoritative real-time play',
-                  body: 'Make your move with optimistic client preview. Watch moves sync across devices via WebSockets with server-validated clocks and checkmate detection.',
-                  active: false,
-                },
-              ].map((step) => (
-                <div
-                  key={step.n}
-                  className="pixel-corners p-8"
-                  style={{ backgroundColor: 'var(--px-panel)', border: '2px solid var(--px-line)' }}
-                >
-                  <span
-                    className="pixel-corners-sm w-10 h-10 font-display text-sm flex items-center justify-center mb-5"
-                    style={
-                      step.active
-                        ? { backgroundColor: 'var(--px-amber)', color: 'var(--px-ink)', border: '2px solid var(--px-ink)' }
-                        : { backgroundColor: 'var(--px-bg)', color: 'var(--px-amber)', border: '2px solid var(--px-line)' }
-                    }
-                  >
-                    {step.n}
-                  </span>
-                  <h3 className="font-display text-[13px] text-[var(--px-cream)] leading-loose mb-2.5">{step.title}</h3>
-                  <p className="text-base text-[var(--px-muted)] leading-relaxed">{step.body}</p>
-                </div>
-              ))}
-            </div>
+          {/* Right Column: Live Interactive Chess Preview */}
+          <div className="lg:col-span-5 flex justify-center w-full">
+            <BoardPreview theme="emerald" />
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Call to Action Banner */}
-        <section className="py-20">
-          <div className="max-w-4xl mx-auto px-6">
-            <div
-              className="pixel-corners relative p-8 sm:p-12 text-center overflow-hidden"
-              style={{ backgroundColor: 'var(--px-panel)', border: '3px solid var(--px-amber)' }}
-            >
-              {/* Hard-edged pixel starburst instead of a blurred gradient orb */}
+      {/* Feature Highlights Section */}
+      <section id="features" className="py-20 border-b border-white/5 bg-[#080d1a]/50 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+            <span className="text-xs uppercase font-bold tracking-widest text-emerald-400">
+              High Integrity Engine
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Architected for Competitive Chess
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+              Chess demands uncompromising server authority, instant clock synchronization, and cheat resistance. We built the platform on production-grade standards.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                icon: ShieldCheck,
+                color: 'text-emerald-400',
+                bg: 'bg-emerald-500/10 border-emerald-500/20',
+                title: 'Authoritative Validation',
+                body: 'Client moves are treated as untrusted intent. The backend engine recalculates the FEN board, legal moves, check/checkmate, and turn order before committing.',
+              },
+              {
+                icon: Zap,
+                color: 'text-amber-400',
+                bg: 'bg-amber-500/10 border-amber-500/20',
+                title: 'Native WebSockets',
+                body: 'First-party Laravel Reverb integration provides real-time event broadcasting for moves, spectator events, draw negotiations, and clock decrements.',
+              },
+              {
+                icon: Trophy,
+                color: 'text-sky-400',
+                bg: 'bg-sky-500/10 border-sky-500/20',
+                title: '1200 ELO Calibration',
+                body: 'Every registered account enters the platform calibrated at standard 1200 ELO. High-concurrency database indexing powers instantaneous matchmaking.',
+              },
+              {
+                icon: Sparkles,
+                color: 'text-purple-400',
+                bg: 'bg-purple-500/10 border-purple-500/20',
+                title: 'Cosmetics Ready',
+                body: 'Built with modular skin registries. Dynamic vector SVG piece sets and custom board palettes are structured to plug in seamlessly without touching core game logic.',
+              },
+            ].map((f) => (
               <div
-                className="absolute -top-6 -right-6 w-16 h-16 opacity-70"
-                style={{
-                  backgroundColor: 'var(--px-amber)',
-                  clipPath:
-                    'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
-                }}
-              />
-
-              <span
-                className="pixel-corners-sm inline-block text-[10px] font-display px-3 py-1.5 mb-5"
-                style={{ backgroundColor: 'var(--px-crimson)', color: 'var(--px-ink)' }}
+                key={f.title}
+                className="group p-6 rounded-2xl glass-card border border-white/5 hover:border-emerald-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-950/20"
               >
-                PHASE 2 ACTIVE
-              </span>
-
-              <h2 className="font-display text-xl sm:text-2xl text-[var(--px-cream)] leading-loose mb-4">
-                Ready to make your opening move?
-              </h2>
-
-              <p className="text-[var(--px-muted)] text-lg sm:text-xl max-w-xl mx-auto mb-8">
-                Join Chessmaster now for fair, authoritative, competitive online chess.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                {isAuthenticated && user ? (
-                  <Link
-                    to="/dashboard"
-                    className="pixel-corners-sm pixel-btn px-6 py-3.5 text-xs sm:text-sm font-display flex items-center gap-2 cursor-pointer"
-                    style={{ backgroundColor: 'var(--px-amber)', color: 'var(--px-ink)', border: '2px solid var(--px-ink)' }}
-                  >
-                    <Trophy className="w-4 h-4" />
-                    Go to player dashboard
-                  </Link>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => openAuth('register')}
-                      className="pixel-corners-sm pixel-btn w-full sm:w-auto px-6 py-3.5 text-xs sm:text-sm font-display cursor-pointer"
-                      style={{ backgroundColor: 'var(--px-amber)', color: 'var(--px-ink)', border: '2px solid var(--px-ink)' }}
-                    >
-                      Create free account
-                    </button>
-                    <button
-                      onClick={() => openAuth('login')}
-                      className="pixel-corners-sm pixel-btn w-full sm:w-auto px-6 py-3.5 text-xs sm:text-sm font-display cursor-pointer"
-                      style={{ backgroundColor: 'var(--px-bg)', color: 'var(--px-cream)', border: '2px solid var(--px-line)' }}
-                    >
-                      Sign in to existing account
-                    </button>
-                  </>
-                )}
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 border ${f.bg} ${f.color}`}
+                >
+                  <f.icon className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">
+                  {f.title}
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{f.body}</p>
               </div>
-            </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Footer */}
-        <footer className="py-10 text-base text-[var(--px-muted)]" style={{ borderTop: '3px solid var(--px-line)' }}>
-          <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span style={{ color: 'var(--px-amber)' }}>&#9823;</span>
-              <span className="text-[var(--px-cream)]">Chessmaster Platform</span>
-              <span>&bull;</span>
-              <span>Multiplayer chess &copy; 2026</span>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <Link to="/health" className="hover:text-[var(--px-amber)] transition">
-                Diagnostics &amp; health
-              </Link>
-              <a href="#features" className="hover:text-[var(--px-amber)] transition">
-                Architecture
-              </a>
-              <span>Built with Laravel 11, React 19, TypeScript &amp; PostgreSQL</span>
-            </div>
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-20 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-xl mx-auto mb-14 space-y-2">
+            <span className="text-xs uppercase font-bold tracking-widest text-sky-400">
+              Simple Workflow
+            </span>
+            <h2 className="text-3xl font-black text-white">How It Works</h2>
+            <p className="text-slate-400 text-sm">
+              Start competing with friends or rivals across the globe in seconds.
+            </p>
           </div>
-        </footer>
-      </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'Create or Join Room',
+                description: 'Pick your preferred time control (Bullet, Blitz, Rapid, or Classical) and generate a secure 8-character invite code.',
+                icon: Layers,
+              },
+              {
+                step: '02',
+                title: 'Real-Time Matchplay',
+                description: 'Play with responsive touch or drag-and-drop moves. Synchronized clocks and legal moves are verified on every single ply.',
+                icon: Users,
+              },
+              {
+                step: '03',
+                title: 'Climb the Leaderboard',
+                description: 'Every completed match dynamically updates player ratings and records full PGN notations to your personal match archive.',
+                icon: Trophy,
+              },
+            ].map((s) => (
+              <div
+                key={s.step}
+                className="relative p-6 rounded-2xl bg-slate-900/50 border border-slate-800/80 backdrop-blur-sm space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400">
+                    <s.icon className="w-5 h-5" />
+                  </div>
+                  <span className="font-mono text-2xl font-black text-slate-700">{s.step}</span>
+                </div>
+                <h3 className="text-base font-bold text-white">{s.title}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{s.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-10 bg-[#04060d] text-slate-500 text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-300">Chessmaster Platform</span>
+            <span>&bull;</span>
+            <span>Full-Stack Laravel 11 &amp; React 19 Engine</span>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <Link to="/health" className="hover:text-emerald-400 transition-colors">
+              Diagnostics
+            </Link>
+            <a href="#features" className="hover:text-emerald-400 transition-colors">
+              Architecture
+            </a>
+            <span className="text-slate-600">&copy; {new Date().getFullYear()} Chessmaster</span>
+          </div>
+        </div>
+      </footer>
 
       {/* Auth Modal */}
-      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} initialMode={authModalMode} />
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authModalMode}
+      />
     </div>
   )
 }

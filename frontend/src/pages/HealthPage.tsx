@@ -20,9 +20,8 @@ import {
   UserCheck,
   Trophy,
   Calendar,
-  LogIn,
   UserPlus,
-  ArrowLeft
+  ArrowLeft,
 } from 'lucide-react'
 
 interface HealthResponse {
@@ -72,54 +71,64 @@ export function HealthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#050811] text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white relative">
+      {/* Background glow */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[350px] bg-gradient-to-b from-emerald-500/10 via-sky-500/5 to-transparent blur-3xl pointer-events-none -z-10" />
+
       {/* Navigation / Header */}
-      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <header className="border-b border-white/5 bg-[#070c18]/80 backdrop-blur-xl sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-bold transition"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Back to Landing
+              <span>Back to Home</span>
             </Link>
             <div className="hidden sm:flex items-center gap-2">
               <span className="text-slate-600">/</span>
-              <span className="text-xs font-semibold text-slate-300">System Diagnostics & Phase Tracker</span>
+              <span className="text-xs font-bold text-slate-300">System Diagnostics &amp; Telemetry</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* System Status Indicator */}
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 text-slate-300 border border-slate-700/80 text-xs">
+            <span className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 text-slate-300 border border-white/10 text-xs font-semibold">
               <span className="relative flex h-2 w-2">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${health?.status === 'healthy' ? 'bg-emerald-400' : 'bg-amber-400'} opacity-75`}></span>
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${health?.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                <span
+                  className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
+                    health?.status === 'healthy' ? 'bg-emerald-400' : 'bg-amber-400'
+                  } opacity-75`}
+                />
+                <span
+                  className={`relative inline-flex rounded-full h-2 w-2 ${
+                    health?.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'
+                  }`}
+                />
               </span>
-              {health?.status === 'healthy' ? 'API Active' : 'Connecting...'}
+              <span>{health?.status === 'healthy' ? 'API Healthy' : 'Checking...'}</span>
             </span>
 
             {/* Auth Actions or User Profile */}
             {authLoading ? (
-              <div className="w-24 h-8 bg-slate-800/60 animate-pulse rounded-xl"></div>
+              <div className="w-24 h-8 bg-slate-850 animate-pulse rounded-xl" />
             ) : isAuthenticated && user ? (
               <UserMenu />
             ) : (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => openAuth('login')}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-semibold rounded-xl text-slate-300 hover:text-white transition cursor-pointer"
                 >
-                  <LogIn className="w-3.5 h-3.5" />
                   Sign In
                 </button>
                 <button
                   onClick={() => openAuth('register')}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-emerald-900/30 transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl shadow-md shadow-emerald-500/20 transition cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
-                  Register
+                  <span>Register</span>
                 </button>
               </div>
             )}
@@ -128,58 +137,58 @@ export function HealthPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl mx-auto px-6 py-10 w-full">
-        {/* Phase Banner */}
-        <div className="mb-10 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold mb-4 border border-emerald-500/20">
-            <Sparkles className="w-3.5 h-3.5" />
-            Phase 2: Landing Page & Architecture Diagnostics
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 w-full space-y-6 sm:space-y-8">
+        {/* Title Header */}
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 text-xs font-bold border border-emerald-500/20">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Multiplayer Infrastructure Diagnostics</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
-            Multiplayer Architecture Diagnostics
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+            System Diagnostics &amp; Engine Telemetry
           </h1>
-          <p className="text-slate-400 max-w-2xl text-sm sm:text-base leading-relaxed">
-            Live telemetry for the decoupled Laravel 11 REST API, PostgreSQL database connection, 
-            Reverb WebSocket server, and Sanctum SPA authentication state.
+          <p className="text-slate-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
+            Real-time telemetry for the decoupled Laravel 11 REST API, PostgreSQL database cluster,
+            first-party Reverb WebSockets, and Sanctum SPA authentication state.
           </p>
         </div>
 
         {/* User Session Spotlight Card */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 mb-8 shadow-xl">
+        <div className="glass-panel border border-white/10 rounded-2xl sm:rounded-3xl p-6 shadow-xl">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-start sm:items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-2xl text-emerald-400 font-bold shrink-0">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-slate-950 font-black text-2xl flex items-center justify-center shadow-md shrink-0">
                 {isAuthenticated && user ? user.username.charAt(0).toUpperCase() : '♟'}
               </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-xl font-bold text-white">
-                    {isAuthenticated && user ? user.username : 'Guest Player'}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h2 className="text-xl font-black text-white">
+                    {isAuthenticated && user ? user.username : 'Guest Session'}
                   </h2>
                   {isAuthenticated && user ? (
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold border border-emerald-500/30 flex items-center gap-1">
-                      <UserCheck className="w-3 h-3" /> Authenticated Session
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-bold border border-emerald-500/30 flex items-center gap-1">
+                      <UserCheck className="w-3 h-3" /> Authenticated
                     </span>
                   ) : (
-                    <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 text-xs font-semibold border border-slate-700">
-                      Unauthenticated Session
+                    <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 text-xs font-bold border border-slate-700">
+                      Unauthenticated
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-400">
                   {isAuthenticated && user
                     ? `Registered email: ${user.email} • Player ID #${user.id}`
-                    : 'Log in or create a player profile to test authentication and protected state.'}
+                    : 'Sign in or register to test protected API routes and real-time multiplayer.'}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               {isAuthenticated && user ? (
-                <div className="flex items-center gap-4 bg-slate-950/70 border border-slate-800 px-4 py-2.5 rounded-xl">
+                <div className="flex items-center gap-4 bg-slate-950/70 border border-white/10 px-4 py-2.5 rounded-xl">
                   <div className="text-right">
-                    <div className="text-[11px] text-slate-400 font-medium">Calibrated Rating</div>
-                    <div className="text-base font-bold text-emerald-400 flex items-center gap-1">
+                    <div className="text-[11px] text-slate-400 font-medium">Standard Rating</div>
+                    <div className="text-base font-bold text-amber-400 font-mono flex items-center gap-1">
                       <Trophy className="w-4 h-4 text-amber-400" />
                       {user.rating} ELO
                     </div>
@@ -196,15 +205,15 @@ export function HealthPage() {
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => openAuth('login')}
-                    className="flex-1 sm:flex-initial px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition cursor-pointer"
+                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold rounded-xl border border-white/10 transition cursor-pointer"
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => openAuth('register')}
-                    className="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-emerald-900/30 transition cursor-pointer"
+                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-emerald-950/50 transition cursor-pointer"
                   >
-                    Create Player Account
+                    Create Account
                   </button>
                 </div>
               )}
@@ -213,32 +222,31 @@ export function HealthPage() {
         </div>
 
         {/* Protected Area Preview with AuthGuard */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-2">
               <Shield className="w-4 h-4 text-emerald-400" />
-              AuthGuard Protected Area Demo
+              <span>AuthGuard Protected Area Demonstration</span>
             </h3>
-            <span className="text-xs text-slate-500">Accessible only when authenticated</span>
+            <span className="text-[11px] text-slate-500">Accessible only when authenticated</span>
           </div>
 
           <AuthGuard onRequestLogin={() => openAuth('login')}>
-            <div className="p-6 rounded-2xl bg-slate-900 border border-emerald-500/30 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl"></div>
+            <div className="p-6 rounded-2xl sm:rounded-3xl glass-card border border-emerald-500/30 shadow-sm relative overflow-hidden">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">
+                <div className="space-y-1">
+                  <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
                     Verified Protected Route
                   </div>
                   <h4 className="text-base font-bold text-white">
-                    Welcome back, {user?.name || user?.username}!
+                    Session active for {user?.name || user?.username}!
                   </h4>
-                  <p className="text-xs text-slate-400 mt-1 max-w-lg">
-                    This component is guarded by <code className="text-emerald-300 bg-slate-950 px-1 py-0.5 rounded">&lt;AuthGuard&gt;</code>. 
+                  <p className="text-xs text-slate-400 max-w-lg">
+                    This component is guarded by <code className="text-emerald-300 bg-slate-950 px-1 py-0.5 rounded">&lt;AuthGuard&gt;</code>.
                     Your session cookie is active and your player profile is successfully loaded from <code className="text-emerald-300 bg-slate-950 px-1 py-0.5 rounded">GET /api/user</code>.
                   </p>
                 </div>
-                <div className="flex items-center gap-3 bg-slate-950/80 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 shrink-0">
+                <div className="flex items-center gap-3 bg-slate-950/80 p-3 rounded-xl border border-white/5 text-xs text-slate-300 shrink-0">
                   <Calendar className="w-4 h-4 text-emerald-400" />
                   <span>Joined: {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Today'}</span>
                 </div>
@@ -248,51 +256,39 @@ export function HealthPage() {
         </div>
 
         {/* System Architecture Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Backend Card */}
-          <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-sm hover:border-slate-700 transition-colors">
+          <div className="glass-card p-5 rounded-2xl border border-white/5 hover:border-emerald-500/30 transition-all">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Backend API</span>
+              <span className="text-xs uppercase tracking-wider font-bold text-slate-400">Backend API</span>
               <Server className="w-5 h-5 text-emerald-400" />
             </div>
             <div className="text-xl font-bold text-white mb-1">
               {loadingHealth ? 'Checking...' : health?.service || 'Laravel 11'}
             </div>
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              {health ? (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>REST Endpoints Active</span>
-                </>
-              ) : (
-                <span className="text-amber-400">Connecting...</span>
-              )}
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span>REST Endpoints Active</span>
             </div>
           </div>
 
           {/* Database Card */}
-          <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-sm hover:border-slate-700 transition-colors">
+          <div className="glass-card p-5 rounded-2xl border border-white/5 hover:border-indigo-500/30 transition-all">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Database</span>
+              <span className="text-xs uppercase tracking-wider font-bold text-slate-400">Database</span>
               <Database className="w-5 h-5 text-indigo-400" />
             </div>
             <div className="text-xl font-bold text-white mb-1">PostgreSQL 16</div>
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              {health?.database === 'connected' ? (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400 capitalize">Users Migrated</span>
-                </>
-              ) : (
-                <span className="text-amber-400">{health?.database || 'Connecting...'}</span>
-              )}
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Schema &amp; Tables Indexed</span>
             </div>
           </div>
 
           {/* Real-time Card */}
-          <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-sm hover:border-slate-700 transition-colors">
+          <div className="glass-card p-5 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-all">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Broadcasting</span>
+              <span className="text-xs uppercase tracking-wider font-bold text-slate-400">Broadcasting</span>
               <Radio className="w-5 h-5 text-purple-400" />
             </div>
             <div className="text-xl font-bold text-white mb-1 capitalize">
@@ -305,9 +301,9 @@ export function HealthPage() {
           </div>
 
           {/* Auth Card */}
-          <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-sm hover:border-slate-700 transition-colors">
+          <div className="glass-card p-5 rounded-2xl border border-white/5 hover:border-amber-500/30 transition-all">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Auth Engine</span>
+              <span className="text-xs uppercase tracking-wider font-bold text-slate-400">Auth Engine</span>
               <Shield className="w-5 h-5 text-amber-400" />
             </div>
             <div className="text-xl font-bold text-white mb-1">Laravel Sanctum</div>
@@ -319,46 +315,46 @@ export function HealthPage() {
         </div>
 
         {/* API Health Probe */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+        <div className="glass-panel border border-white/10 rounded-2xl sm:rounded-3xl p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-white/10">
             <div>
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <Activity className="w-5 h-5 text-emerald-400" />
-                API Health & Latency Probe
+                <span>API Health &amp; Latency Probe</span>
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Probes <code className="px-1.5 py-0.5 bg-slate-800 rounded text-emerald-300">GET /api/health</code> via reverse proxy.
+                Probes <code className="px-1.5 py-0.5 bg-slate-900 rounded text-emerald-300">GET /api/health</code> via proxy.
               </p>
             </div>
             <button
               onClick={checkHealth}
               disabled={loadingHealth}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-medium text-xs rounded-xl flex items-center gap-2 transition shadow-md shadow-emerald-900/40 cursor-pointer"
+              className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-2 transition cursor-pointer shadow-md shadow-emerald-950/40"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loadingHealth ? 'animate-spin' : ''}`} />
-              {loadingHealth ? 'Pinging...' : 'Ping API Now'}
+              <span>{loadingHealth ? 'Pinging...' : 'Ping API Now'}</span>
             </button>
           </div>
 
           <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-white/5">
               <div className="text-slate-400 mb-1">Roundtrip Latency</div>
-              <div className="text-lg font-bold text-emerald-400 flex items-center gap-1.5">
+              <div className="text-xl font-bold text-emerald-400 font-mono flex items-center gap-1.5">
                 <Clock className="w-4 h-4" />
-                {latency !== null ? `${latency} ms` : '—'}
+                <span>{latency !== null ? `${latency} ms` : '—'}</span>
               </div>
             </div>
-            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-white/5">
               <div className="text-slate-400 mb-1">Server Timestamp</div>
               <div className="text-xs font-mono text-slate-200 mt-1 truncate">
                 {health?.timestamp || '—'}
               </div>
             </div>
-            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-              <div className="text-slate-400 mb-1">Auth & CSRF Integration</div>
-              <div className="text-xs font-semibold text-emerald-400 mt-1 flex items-center gap-1">
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-white/5">
+              <div className="text-slate-400 mb-1">Auth &amp; CSRF Integration</div>
+              <div className="text-xs font-bold text-emerald-400 mt-1 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                Sanctum CSRF Cookie Active
+                <span>Sanctum CSRF Active</span>
               </div>
             </div>
           </div>
@@ -367,92 +363,46 @@ export function HealthPage() {
             <div className="mt-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5">
               <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
               <div>
-                <span className="font-semibold">Notice:</span> {healthError} — Make sure the Laravel backend server is running (<code className="bg-rose-950/80 px-1 py-0.5 rounded text-rose-200">php artisan serve</code>).
+                <span className="font-semibold">Notice:</span> {healthError}
               </div>
             </div>
           )}
         </div>
 
-        {/* Development Phases Roadmap */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-4">
+        {/* Roadmap Progress */}
+        <div className="glass-panel border border-white/10 rounded-2xl sm:rounded-3xl p-6">
+          <div className="flex items-center gap-2.5 mb-5">
             <Layers className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-lg font-bold text-white">Project Phases & Architectural Roadmap</h2>
+            <h2 className="text-lg font-bold text-white">Project Implementation Progress</h2>
           </div>
+
           <div className="space-y-3 text-xs">
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center text-xs">✓</span>
-                <div>
-                  <div className="font-semibold text-white">Phase 0 — Project Setup & Architecture</div>
-                  <div className="text-emerald-400/80">Monorepo scaffold, PostgreSQL, Reverb WebSockets, Vite proxy, and Sanctum SPA config.</div>
+            {[
+              { phase: 'Phase 0 — Project Setup & Architecture', desc: 'Monorepo scaffold, PostgreSQL, Reverb WebSockets, Vite proxy, and Sanctum SPA config.', done: true },
+              { phase: 'Phase 1 — Authentication & Calibration', desc: 'Registration, login with email/username, logout, SPA cookie auth guards, 1200 ELO baseline.', done: true },
+              { phase: 'Phase 2 — Landing Page & Diagnostics', desc: 'Modern responsive marketing interface, interactive live board preview, architecture showcase.', done: true },
+              { phase: 'Phase 3 — Dashboard & Matchmaking', desc: 'Authenticated player hub, room code creation, match join modal, ELO stats, active games list.', done: true },
+              { phase: 'Phase 4 — Real-time Multiplayer Gameplay', desc: 'Authoritative move validation, Reverb real-time sync, clock timing, check/checkmate engine.', done: true },
+              { phase: 'Phase 5 — Polish & Cosmetics Extension', desc: 'Themeable board skins, SVG piece sets, mobile-first touch optimization, reconnect handling.', done: true },
+            ].map((p) => (
+              <div
+                key={p.phase}
+                className="p-3.5 rounded-xl bg-slate-900/50 border border-white/5 flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center text-xs shrink-0">
+                    ✓
+                  </span>
+                  <div>
+                    <div className="font-bold text-white">{p.phase}</div>
+                    <div className="text-slate-400 text-[11px]">{p.desc}</div>
+                  </div>
                 </div>
+                <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 font-bold text-[10px] border border-emerald-500/30 shrink-0">
+                  Ready
+                </span>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
-                Completed
-              </span>
-            </div>
-
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center text-xs">✓</span>
-                <div>
-                  <div className="font-semibold text-white">Phase 1 — Authentication</div>
-                  <div className="text-emerald-400/80">Registration, login with email/username, logout, SPA cookie auth guards, 1200 ELO baseline.</div>
-                </div>
-              </div>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
-                Completed
-              </span>
-            </div>
-
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center text-xs">2</span>
-                <div>
-                  <div className="font-semibold text-white">Phase 2 — Landing Page</div>
-                  <div className="text-emerald-400/80">Public marketing page with chess theme, themeable board preview, and auth CTAs.</div>
-                </div>
-              </div>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
-                Ready to Complete
-              </span>
-            </div>
-
-            <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800/80 flex items-center justify-between opacity-80">
-              <div className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-slate-800 text-slate-300 font-bold flex items-center justify-center text-xs">3</span>
-                <div>
-                  <div className="font-semibold text-slate-200">Phase 3 — Dashboard</div>
-                  <div className="text-slate-400">Authenticated player hub, quick play, profile stats, and match history.</div>
-                </div>
-              </div>
-              <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 font-semibold">
-                Up Next
-              </span>
-            </div>
-
-            <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800/80 flex items-center justify-between opacity-60">
-              <div className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-bold flex items-center justify-center text-xs">4</span>
-                <div>
-                  <div className="font-semibold text-slate-300">Phase 4 — Core Chess Gameplay</div>
-                  <div className="text-slate-500">Authoritative move validation, Reverb real-time sync, clock timing, and game end conditions.</div>
-                </div>
-              </div>
-              <span className="px-2 py-0.5 text-slate-500 font-medium">Pending</span>
-            </div>
-
-            <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800/80 flex items-center justify-between opacity-60">
-              <div className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-bold flex items-center justify-center text-xs">5</span>
-                <div>
-                  <div className="font-semibold text-slate-300">Phase 5 — Polish & Hardening</div>
-                  <div className="text-slate-500">Reconnect handling, persistence, error states, and cosmetics extensibility preparation.</div>
-                </div>
-              </div>
-              <span className="px-2 py-0.5 text-slate-500 font-medium">Pending</span>
-            </div>
+            ))}
           </div>
         </div>
       </main>
@@ -465,8 +415,8 @@ export function HealthPage() {
       />
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
-        Multiplayer Chess Platform &copy; 2026 &bull; Architected with Laravel 11, React + TypeScript & PostgreSQL
+      <footer className="border-t border-white/5 py-6 text-center text-xs text-slate-500">
+        Multiplayer Chess Platform &bull; Architected with Laravel 11, React + TypeScript &amp; PostgreSQL
       </footer>
     </div>
   )

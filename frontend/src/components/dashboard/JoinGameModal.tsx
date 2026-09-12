@@ -42,24 +42,26 @@ export function JoinGameModal({ isOpen, onClose, onGameJoined }: JoinGameModalPr
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-950/60">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">♟</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-sm bg-[#0b101f] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/10 bg-slate-950/40">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm">
+              ♟
+            </div>
             <h3 className="text-sm font-bold text-white">Join Match by Code</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleJoin} className="p-6 space-y-4">
+        <form onSubmit={handleJoin} className="p-5 sm:p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Room Invite Code
             </label>
             <input
@@ -68,7 +70,7 @@ export function JoinGameModal({ isOpen, onClose, onGameJoined }: JoinGameModalPr
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="e.g. CH-8A9K2L"
-              className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm font-mono tracking-widest text-center text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition uppercase"
+              className="w-full bg-slate-950/90 border border-slate-700/80 rounded-xl px-4 py-3 text-base font-mono tracking-widest text-center text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition uppercase font-bold"
             />
           </div>
 
@@ -82,17 +84,17 @@ export function JoinGameModal({ isOpen, onClose, onGameJoined }: JoinGameModalPr
           <button
             type="submit"
             disabled={submitting || !code.trim()}
-            className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-xs rounded-xl shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 transition cursor-pointer"
+            className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition cursor-pointer"
           >
             {submitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Joining...
+                <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                <span>Entering arena...</span>
               </>
             ) : (
               <>
-                <LogIn className="w-3.5 h-3.5" />
-                Join Match Now
+                <LogIn className="w-4 h-4 text-slate-950" />
+                <span>Join Match Now</span>
               </>
             )}
           </button>

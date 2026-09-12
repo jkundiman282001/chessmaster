@@ -55,7 +55,7 @@ export const Chessboard: React.FC<ChessboardProps> = ({
   // Find king square in check
   const kingInCheckSquare = useMemo(() => {
     if (!isCheck) return null
-    const targetTurn = chess.turn() // 'w' | 'b'
+    const targetTurn = chess.turn()
 
     for (let r = 0; r < 8; r++) {
       for (let f = 0; f < 8; f++) {
@@ -71,7 +71,7 @@ export const Chessboard: React.FC<ChessboardProps> = ({
     return null
   }, [chess, isCheck])
 
-  // Get legal destination squares for currently selected piece
+  // Legal destination squares for currently selected piece
   const legalMovesForSelected = useMemo<string[]>(() => {
     if (!selectedSquare || !isTurn) return []
     try {
@@ -87,26 +87,26 @@ export const Chessboard: React.FC<ChessboardProps> = ({
     emerald: {
       light: 'bg-[#eeeed2] text-[#779952]',
       dark: 'bg-[#769656] text-[#eeeed2]',
-      selected: 'bg-amber-300/70',
+      selected: 'bg-amber-300/80 ring-2 ring-amber-400 inset-0',
       lastMove: 'bg-amber-200/50',
-      legalDot: 'bg-black/25',
-      legalCapture: 'border-4 border-black/30',
+      legalDot: 'bg-slate-900/30 ring-1 ring-white/40',
+      legalCapture: 'border-4 border-slate-900/40',
     },
     slate: {
       light: 'bg-slate-200 text-slate-700',
       dark: 'bg-slate-600 text-slate-200',
-      selected: 'bg-sky-400/60',
+      selected: 'bg-sky-400/70 ring-2 ring-sky-300 inset-0',
       lastMove: 'bg-sky-300/40',
-      legalDot: 'bg-slate-900/30',
-      legalCapture: 'border-4 border-slate-900/30',
+      legalDot: 'bg-slate-900/35 ring-1 ring-white/40',
+      legalCapture: 'border-4 border-slate-900/40',
     },
     amber: {
       light: 'bg-[#f0d9b5] text-[#b58863]',
       dark: 'bg-[#b58863] text-[#f0d9b5]',
-      selected: 'bg-emerald-400/60',
+      selected: 'bg-yellow-300/80 ring-2 ring-yellow-400 inset-0',
       lastMove: 'bg-yellow-300/40',
-      legalDot: 'bg-yellow-950/25',
-      legalCapture: 'border-4 border-yellow-950/30',
+      legalDot: 'bg-yellow-950/30 ring-1 ring-white/40',
+      legalCapture: 'border-4 border-yellow-950/40',
     },
   }[theme]
 
@@ -133,7 +133,7 @@ export const Chessboard: React.FC<ChessboardProps> = ({
         return
       }
 
-      // Legal non-promotion move
+      // Legal move
       onMove?.({ from, to })
       setSelectedSquare(null)
     } catch {
@@ -204,7 +204,13 @@ export const Chessboard: React.FC<ChessboardProps> = ({
   }
 
   return (
-    <div className={clsx('relative select-none aspect-square w-full max-w-[620px] mx-auto rounded-xl overflow-hidden shadow-2xl border-4 border-slate-800 bg-slate-900', className)}>
+    <div
+      className={clsx(
+        'relative select-none aspect-square w-full max-w-[min(100vw-1.5rem,540px)] mx-auto rounded-2xl overflow-hidden shadow-2xl border-2 sm:border-4 border-slate-800 bg-[#070c18]',
+        className
+      )}
+      style={{ touchAction: 'manipulation' }}
+    >
       {/* 8x8 Board Grid */}
       <div className="grid grid-cols-8 grid-rows-8 w-full h-full">
         {ranks.map((rank, rankIdx) =>
@@ -226,7 +232,7 @@ export const Chessboard: React.FC<ChessboardProps> = ({
                 onDragOver={handleDragOver}
                 onDrop={e => handleDrop(e, square)}
                 className={clsx(
-                  'relative flex items-center justify-center cursor-pointer transition-colors',
+                  'relative flex items-center justify-center cursor-pointer transition-colors duration-100',
                   isLight ? themeClasses.light : themeClasses.dark,
                   isSelected && themeClasses.selected,
                   !isSelected && isLastMove && themeClasses.lastMove,
@@ -235,32 +241,38 @@ export const Chessboard: React.FC<ChessboardProps> = ({
               >
                 {/* File coordinate notation on bottom row */}
                 {rankIdx === 7 && (
-                  <span className={clsx(
-                    'absolute bottom-0.5 right-1 text-[10px] font-bold pointer-events-none opacity-80',
-                    isLight ? 'text-slate-800/60' : 'text-amber-100/70'
-                  )}>
+                  <span
+                    className={clsx(
+                      'absolute bottom-0.5 right-1 text-[9px] sm:text-[10px] font-bold pointer-events-none select-none opacity-75',
+                      isLight ? 'text-slate-800/60' : 'text-amber-100/70'
+                    )}
+                  >
                     {file}
                   </span>
                 )}
 
                 {/* Rank coordinate notation on left column */}
                 {fileIdx === 0 && (
-                  <span className={clsx(
-                    'absolute top-0.5 left-1 text-[10px] font-bold pointer-events-none opacity-80',
-                    isLight ? 'text-slate-800/60' : 'text-amber-100/70'
-                  )}>
+                  <span
+                    className={clsx(
+                      'absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-bold pointer-events-none select-none opacity-75',
+                      isLight ? 'text-slate-800/60' : 'text-amber-100/70'
+                    )}
+                  >
                     {rank}
                   </span>
                 )}
 
-                {/* Chess piece visual */}
+                {/* Chess piece visual with drop shadow and touch optimization */}
                 {piece && (
                   <div
                     draggable={isTurn && piece.color === chess.turn()}
                     onDragStart={e => handleDragStart(e, square)}
                     className={clsx(
-                      'w-[85%] h-[85%] flex items-center justify-center transition-transform duration-75',
-                      isTurn && piece.color === chess.turn() ? 'cursor-grab active:cursor-grabbing hover:scale-105' : 'cursor-default'
+                      'w-[86%] h-[86%] flex items-center justify-center transition-transform duration-100 drop-shadow-md',
+                      isTurn && piece.color === chess.turn()
+                        ? 'cursor-grab active:cursor-grabbing hover:scale-105'
+                        : 'cursor-default'
                     )}
                   >
                     <ChessPiece piece={piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase()} />
@@ -269,12 +281,12 @@ export const Chessboard: React.FC<ChessboardProps> = ({
 
                 {/* Legal move dot indicator */}
                 {isLegalDest && !piece && (
-                  <div className="absolute w-3.5 h-3.5 rounded-full bg-black/35 pointer-events-none" />
+                  <div className="absolute w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-slate-900/35 border border-white/20 pointer-events-none animate-pulse" />
                 )}
 
                 {/* Legal capture target indicator */}
                 {isCaptureTarget && (
-                  <div className="absolute inset-1 rounded-full border-4 border-black/35 pointer-events-none" />
+                  <div className="absolute inset-1 sm:inset-1.5 rounded-full border-3 sm:border-4 border-slate-900/40 pointer-events-none" />
                 )}
               </div>
             )
@@ -284,11 +296,11 @@ export const Chessboard: React.FC<ChessboardProps> = ({
 
       {/* Pawn Promotion Modal Picker */}
       {promotionPending && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-150">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-5 shadow-2xl text-center max-w-sm w-full mx-4">
-            <h3 className="text-lg font-bold text-white mb-1">Promote Pawn</h3>
+        <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-150 p-4">
+          <div className="bg-[#0b101f] border border-white/10 rounded-2xl p-5 shadow-2xl text-center max-w-sm w-full mx-auto">
+            <h3 className="text-base font-extrabold text-white mb-1">Promote Pawn</h3>
             <p className="text-xs text-slate-400 mb-4">Choose your promotion piece:</p>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 gap-2.5">
               {[
                 { type: 'q', label: 'Queen' },
                 { type: 'r', label: 'Rook' },
@@ -300,12 +312,12 @@ export const Chessboard: React.FC<ChessboardProps> = ({
                   <button
                     key={type}
                     onClick={() => completePromotion(type as any)}
-                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-800 hover:bg-emerald-600/30 border border-slate-700 hover:border-emerald-500 transition-all group"
+                    className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900 hover:bg-emerald-600/30 border border-slate-800 hover:border-emerald-500 transition-all group cursor-pointer"
                   >
-                    <div className="w-12 h-12 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <ChessPiece piece={promoChar} />
                     </div>
-                    <span className="text-[11px] font-semibold text-slate-300 mt-1">{label}</span>
+                    <span className="text-[10px] font-bold text-slate-300 mt-1">{label}</span>
                   </button>
                 )
               })}
