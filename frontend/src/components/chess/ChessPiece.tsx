@@ -6,27 +6,41 @@ interface ChessPieceProps {
 }
 
 export const ChessPiece: React.FC<ChessPieceProps> = ({ piece, className = 'w-full h-full' }) => {
-  const [useFallback, setUseFallback] = useState(false)
   const isWhite = piece === piece.toUpperCase()
   const type = piece.toLowerCase()
 
-  // Custom asset path: matches files placed in frontend/public/pieces/
-  const assetSrc = `/pieces/${isWhite ? 'w' : 'b'}_${type}.svg`
+  // Determine asset path: pawns use custom PNGs, others use custom SVGs
+  const defaultSrc = type === 'p'
+    ? `/pieces/${isWhite ? 'w' : 'b'}_p.png`
+    : `/pieces/${isWhite ? 'w' : 'b'}_${type}.svg`
 
-  // Primary: Load custom asset from public/pieces/ if available
-  if (!useFallback) {
+  const [currentSrc, setCurrentSrc] = useState<string | null>(defaultSrc)
+  const [useFallback, setUseFallback] = useState(false)
+
+  const handleError = () => {
+    // If /pieces/w_p.png fails, try root /w_p.png as secondary candidate
+    if (type === 'p' && currentSrc?.startsWith('/pieces/')) {
+      setCurrentSrc(`/${isWhite ? 'w' : 'b'}_p.png`)
+      return
+    }
+    // Fall back to built-in inline vector SVG
+    setUseFallback(true)
+  }
+
+  // Primary: Load asset
+  if (!useFallback && currentSrc) {
     return (
       <img
-        src={assetSrc}
+        src={currentSrc}
         alt={`${isWhite ? 'White' : 'Black'} ${type}`}
         className={`${className} object-contain select-none pointer-events-none`}
         draggable={false}
-        onError={() => setUseFallback(true)}
+        onError={handleError}
       />
     )
   }
 
-  // Fallback: Built-in inline vector SVGs if asset is not found
+  // Fallback: Built-in inline vector SVGs
   const fill = isWhite ? '#ffffff' : '#1e293b'
   const stroke = isWhite ? '#334155' : '#0f172a'
   const detail = isWhite ? '#cbd5e1' : '#475569'
@@ -36,7 +50,7 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({ piece, className = 'w-fu
       return (
         <svg viewBox="0 0 45 45" className={className}>
           <path
-            d="m 22.5,9 c -2.21,0 -4,1.79 -4,4 0,0.89 0.29,1.71 0.78,2.38 C 17.33,16.5 16,18.59 16,21 c 0,2.03 0.94,3.84 2.41,5.03 C 15.41,27.09 11,31.58 11,39.5 l 23,0 c 0,-7.92 -4.41,-12.41 -7.41,-13.47 C 28.06,24.84 29,23.03 29,21 29,18.59 27.67,16.5 25.72,15.38 26.21,14.71 26.5,13.89 26.5,13 c 0,-2.21 -1.79,-4 -4,-4 z"
+            d="m 22.5,9 c -2.21,0 -4,1.79 -4,4 0,0.89 0.29,1.71 0.78,2.38 C 17.33,16.5 16,18.59 16,21 c 0,2.03 0.94,3.84 2.41,5.03 C 15.41,27.09 11,31.58 11,39.5 l 23,0 c 0,-7.92 -4.41,-12.41 -7.41,-13.47 C 28.06,24.84 29,23.03 29,21 29,18.59 27.67,16.5 25.72,15.38 26.21,14.71 26.5,13 0,-2.21 -1.79,-4 -4,-4 z"
             fill={fill}
             stroke={stroke}
             strokeWidth="1.5"
