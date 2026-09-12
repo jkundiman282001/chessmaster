@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 interface ChessPieceProps {
   piece: string // 'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'
@@ -6,9 +6,27 @@ interface ChessPieceProps {
 }
 
 export const ChessPiece: React.FC<ChessPieceProps> = ({ piece, className = 'w-full h-full' }) => {
+  const [useFallback, setUseFallback] = useState(false)
   const isWhite = piece === piece.toUpperCase()
   const type = piece.toLowerCase()
 
+  // Custom asset path: matches files placed in frontend/public/pieces/
+  const assetSrc = `/pieces/${isWhite ? 'w' : 'b'}_${type}.svg`
+
+  // Primary: Load custom asset from public/pieces/ if available
+  if (!useFallback) {
+    return (
+      <img
+        src={assetSrc}
+        alt={`${isWhite ? 'White' : 'Black'} ${type}`}
+        className={`${className} object-contain select-none pointer-events-none`}
+        draggable={false}
+        onError={() => setUseFallback(true)}
+      />
+    )
+  }
+
+  // Fallback: Built-in inline vector SVGs if asset is not found
   const fill = isWhite ? '#ffffff' : '#1e293b'
   const stroke = isWhite ? '#334155' : '#0f172a'
   const detail = isWhite ? '#cbd5e1' : '#475569'

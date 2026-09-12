@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased] - 2026-09-12
 
+### Added
+- **Custom Chess Piece Assets Architecture**:
+  - Created dedicated asset directories [`frontend/public/pieces/`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/public/pieces/) and [`frontend/src/assets/pieces/`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/assets/pieces/).
+  - Provided complete template vector SVG files for all 12 pieces (`w_p`, `w_n`, `w_b`, `w_r`, `w_q`, `w_k`, `b_p`, `b_n`, `b_b`, `b_r`, `b_q`, `b_k`).
+  - Added [`README.md`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/public/pieces/README.md) documenting file naming conventions, formats (SVG, PNG, WebP), and paths for Windows and WSL.
+  - Enhanced [`ChessPiece.tsx`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/components/chess/ChessPiece.tsx) to automatically load custom piece assets from `/pieces/` with fallback to inline vector SVGs.
+
 ### Changed
 - **Comprehensive Modern UI & Responsive Redesign**:
   - **Global Theme & Styling (`frontend/src/index.css`)**:
