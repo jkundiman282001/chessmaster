@@ -119,24 +119,24 @@ export function AuthModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-[#0b101f] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+      <div className="relative w-full max-w-md bg-ink-raised border border-brass/15 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
         {/* Glow accent */}
-        <div className="absolute top-0 right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-0 right-10 w-48 h-48 bg-brass/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/10 bg-slate-950/40">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-ink-line bg-ink/40">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm">
+            <div className="w-8 h-8 rounded-lg bg-brass/15 border border-brass/30 flex items-center justify-center text-brass font-display font-bold text-sm">
               ♟
             </div>
-            <div className="flex bg-slate-900/90 p-1 rounded-xl border border-white/10">
+            <div className="flex bg-ink/70 p-1 rounded-xl border border-ink-line">
               <button
                 type="button"
                 onClick={() => handleModeChange('login')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   mode === 'login'
-                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-brass text-ink shadow-sm'
+                    : 'text-parchment-dim hover:text-ivory'
                 }`}
               >
                 Sign In
@@ -146,8 +146,8 @@ export function AuthModal({
                 onClick={() => handleModeChange('register')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   mode === 'register'
-                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-brass text-ink shadow-sm'
+                    : 'text-parchment-dim hover:text-ivory'
                 }`}
               >
                 Register
@@ -156,7 +156,7 @@ export function AuthModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            className="p-1.5 rounded-xl text-parchment-dim hover:text-ivory hover:bg-white/5 transition cursor-pointer"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
@@ -172,8 +172,8 @@ export function AuthModal({
         )}
 
         {successMessage && (
-          <div className="mx-5 mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+          <div className="mx-5 mt-4 p-3 rounded-xl bg-felt/15 border border-felt-light/30 text-felt-light text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-felt-light" />
             <span>{successMessage}</span>
           </div>
         )}
@@ -183,18 +183,18 @@ export function AuthModal({
           {mode === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-parchment mb-1.5">
                   Username or Email
                 </label>
                 <div className="relative">
-                  <UserIcon className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <UserIcon className="absolute left-3.5 top-3 w-4 h-4 text-parchment-dim" />
                   <input
                     type="text"
                     required
                     value={loginIdentifier}
                     onChange={(e) => setLoginIdentifier(e.target.value)}
                     placeholder="grandmaster or player@domain.com"
-                    className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+                    className="w-full bg-ink/80 border border-ink-line rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-ivory placeholder-parchment-dim/70 focus:outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 transition"
                   />
                 </div>
                 {fieldErrors.login && (
@@ -203,18 +203,18 @@ export function AuthModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-parchment mb-1.5">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-parchment-dim" />
                   <input
                     type="password"
                     required
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+                    className="w-full bg-ink/80 border border-ink-line rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-ivory placeholder-parchment-dim/70 focus:outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 transition"
                   />
                 </div>
                 {fieldErrors.password && (
@@ -225,11 +225,11 @@ export function AuthModal({
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full mt-3 py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition cursor-pointer"
+                className="w-full mt-3 py-3 px-4 bg-gradient-to-r from-brass to-brass-dim hover:from-brass-light hover:to-brass disabled:opacity-50 text-ink font-extrabold text-xs rounded-xl shadow-lg shadow-black/40 flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                    <Loader2 className="w-4 h-4 animate-spin text-ink" />
                     <span>Verifying session...</span>
                   </>
                 ) : (
@@ -237,12 +237,12 @@ export function AuthModal({
                 )}
               </button>
 
-              <div className="text-center pt-2 text-xs text-slate-400">
+              <div className="text-center pt-2 text-xs text-parchment-dim">
                 New player?{' '}
                 <button
                   type="button"
                   onClick={() => handleModeChange('register')}
-                  className="text-emerald-400 hover:underline font-semibold cursor-pointer"
+                  className="text-brass-light hover:underline font-semibold cursor-pointer"
                 >
                   Register an account
                 </button>
@@ -252,20 +252,20 @@ export function AuthModal({
             <form onSubmit={handleRegister} className="space-y-3.5">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-slate-300">
-                    Username <span className="text-emerald-400">*</span>
+                  <label className="text-xs font-semibold text-parchment">
+                    Username <span className="text-brass-light">*</span>
                   </label>
-                  <span className="text-[10px] text-slate-500">Unique handle</span>
+                  <span className="text-[10px] text-parchment-dim">Unique handle</span>
                 </div>
                 <div className="relative">
-                  <UserIcon className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-500" />
+                  <UserIcon className="absolute left-3.5 top-2.5 w-4 h-4 text-parchment-dim" />
                   <input
                     type="text"
                     required
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value)}
                     placeholder="e.g. bobby_fischer"
-                    className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+                    className="w-full bg-ink/80 border border-ink-line rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-ivory placeholder-parchment-dim/70 focus:outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 transition"
                   />
                 </div>
                 {fieldErrors.username && (
@@ -274,34 +274,34 @@ export function AuthModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Display Name <span className="text-slate-500 font-normal">(Optional)</span>
+                <label className="block text-xs font-semibold text-parchment mb-1">
+                  Display Name <span className="text-parchment-dim font-normal">(Optional)</span>
                 </label>
                 <div className="relative">
-                  <UserIcon className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-500" />
+                  <UserIcon className="absolute left-3.5 top-2.5 w-4 h-4 text-parchment-dim" />
                   <input
                     type="text"
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="e.g. Bobby Fischer"
-                    className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+                    className="w-full bg-ink/80 border border-ink-line rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-ivory placeholder-parchment-dim/70 focus:outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Email Address <span className="text-emerald-400">*</span>
+                <label className="block text-xs font-semibold text-parchment mb-1">
+                  Email Address <span className="text-brass-light">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-500" />
+                  <Mail className="absolute left-3.5 top-2.5 w-4 h-4 text-parchment-dim" />
                   <input
                     type="email"
                     required
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     placeholder="you@domain.com"
-                    className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+                    className="w-full bg-ink/80 border border-ink-line rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-ivory placeholder-parchment-dim/70 focus:outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 transition"
                   />
                 </div>
                 {fieldErrors.email && (
@@ -310,18 +310,18 @@ export function AuthModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Password <span className="text-emerald-400">*</span>
+                <label className="block text-xs font-semibold text-parchment mb-1">
+                  Password <span className="text-brass-light">*</span>
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-500" />
+                  <Lock className="absolute left-3.5 top-2.5 w-4 h-4 text-parchment-dim" />
                   <input
                     type="password"
                     required
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="Min. 8 characters"
-                    className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+                    className="w-full bg-ink/80 border border-ink-line rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-ivory placeholder-parchment-dim/70 focus:outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 transition"
                   />
                 </div>
                 {fieldErrors.password && (
@@ -330,35 +330,35 @@ export function AuthModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Confirm Password <span className="text-emerald-400">*</span>
+                <label className="block text-xs font-semibold text-parchment mb-1">
+                  Confirm Password <span className="text-brass-light">*</span>
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-500" />
+                  <Lock className="absolute left-3.5 top-2.5 w-4 h-4 text-parchment-dim" />
                   <input
                     type="password"
                     required
                     value={regPasswordConfirmation}
                     onChange={(e) => setRegPasswordConfirmation(e.target.value)}
                     placeholder="Re-type password"
-                    className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+                    className="w-full bg-ink/80 border border-ink-line rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-ivory placeholder-parchment-dim/70 focus:outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 transition"
                   />
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-2 text-[11px] text-emerald-300">
-                <Sparkles className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+              <div className="p-2.5 rounded-xl bg-felt/10 border border-felt-light/25 flex items-center gap-2 text-[11px] text-felt-light">
+                <Sparkles className="w-3.5 h-3.5 shrink-0 text-felt-light" />
                 <span>Starts automatically calibrated at standard 1200 ELO rating.</span>
               </div>
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition cursor-pointer"
+                className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-brass to-brass-dim hover:from-brass-light hover:to-brass disabled:opacity-50 text-ink font-extrabold text-xs rounded-xl shadow-lg shadow-black/40 flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                    <Loader2 className="w-4 h-4 animate-spin text-ink" />
                     <span>Creating account...</span>
                   </>
                 ) : (
@@ -366,12 +366,12 @@ export function AuthModal({
                 )}
               </button>
 
-              <div className="text-center pt-2 text-xs text-slate-400">
+              <div className="text-center pt-2 text-xs text-parchment-dim">
                 Already registered?{' '}
                 <button
                   type="button"
                   onClick={() => handleModeChange('login')}
-                  className="text-emerald-400 hover:underline font-semibold cursor-pointer"
+                  className="text-brass-light hover:underline font-semibold cursor-pointer"
                 >
                   Sign in here
                 </button>
