@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Play,
   LogIn,
-  Activity,
   Layers,
   Users,
   Lock,
@@ -61,13 +60,6 @@ export function LandingPage() {
             <a href="#how-it-works" className="hover:text-emerald-400 transition-colors">
               How It Works
             </a>
-            <Link
-              to="/health"
-              className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors"
-            >
-              <Activity className="w-4 h-4 text-emerald-400" />
-              <span>System Health</span>
-            </Link>
           </nav>
 
           {/* Right Actions */}
@@ -315,11 +307,11 @@ export function LandingPage() {
           </div>
 
           <div className="flex items-center gap-6">
-            <Link to="/health" className="hover:text-emerald-400 transition-colors">
-              Diagnostics
-            </Link>
             <a href="#features" className="hover:text-emerald-400 transition-colors">
               Architecture
+            </a>
+            <a href="#how-it-works" className="hover:text-emerald-400 transition-colors">
+              How It Works
             </a>
             <span className="text-slate-600">&copy; {new Date().getFullYear()} Chessmaster</span>
           </div>

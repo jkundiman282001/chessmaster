@@ -5,8 +5,6 @@ import {
   Swords,
   Plus,
   LogIn,
-  RefreshCw,
-  Activity,
   Sparkles,
   Percent,
   CheckCircle2,
@@ -28,12 +26,11 @@ import { CosmeticsPreviewCard } from '../components/dashboard/CosmeticsPreviewCa
 import type { DashboardResponse, Game } from '../types/game'
 
 export function DashboardPage() {
-  const { user, refreshUser } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   const [data, setData] = useState<DashboardResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [joinModalOpen, setJoinModalOpen] = useState(false)
 
@@ -45,19 +42,12 @@ export function DashboardPage() {
       // Handled gracefully
     } finally {
       setLoading(false)
-      setRefreshing(false)
     }
   }
 
   useEffect(() => {
     fetchDashboardData()
   }, [])
-
-  const handleRefresh = () => {
-    setRefreshing(true)
-    refreshUser()
-    fetchDashboardData()
-  }
 
   const handleGameCreated = (newGame: Game) => {
     setData((prev) => {
@@ -110,24 +100,6 @@ export function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-2.5">
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold transition cursor-pointer"
-                title="Sync and refresh dashboard"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-emerald-400' : ''}`} />
-                <span>Sync</span>
-              </button>
-
-              <Link
-                to="/health"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold transition"
-              >
-                <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="hidden sm:inline">Diagnostics</span>
-              </Link>
-
               <UserMenu />
             </div>
           </div>
