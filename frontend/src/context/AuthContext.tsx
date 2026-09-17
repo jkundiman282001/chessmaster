@@ -46,15 +46,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser])
 
   const login = async (credentials: LoginCredentials): Promise<User> => {
-    await getCsrfCookie()
+    // Only fetch CSRF if running without token
+    if (!localStorage.getItem('chessmaster_token')) {
+      await getCsrfCookie()
+    }
     const response = await api.post<AuthResponse>('/api/login', credentials)
+    if (response.data.token) {
+      localStorage.setItem('chessmaster_token', response.data.token)
+    }
     setUser(response.data.user)
     return response.data.user
   }
 
   const register = async (credentials: RegisterCredentials): Promise<User> => {
-    await getCsrfCookie()
+    if (!localStorage.getItem('chessmaster_token')) {
+      await getCsrfCookie()
+    }
     const response = await api.post<AuthResponse>('/api/register', credentials)
+    if (response.data.token) {
+      localStorage.setItem('chessmaster_token', response.data.token)
+    }
     setUser(response.data.user)
     return response.data.user
   }
@@ -63,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await api.post('/api/logout')
     } finally {
+      localStorage.removeItem('chessmaster_token')
       setUser(null)
     }
   }

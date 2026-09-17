@@ -25,6 +25,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     - Updated [`frontend/src/lib/api.ts`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/lib/api.ts) to support the `VITE_API_URL` environment variable for direct Render API connections.
 
 ### Fixed
+- **Authentication Latency & Cross-Origin Performance**:
+  - Eliminated redundant `GET /sanctum/csrf-cookie` roundtrip on authentication requests by issuing Sanctum API Bearer tokens (`auth_token`) on login and registration in [`AuthController.php`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/app/Http/Controllers/Api/AuthController.php).
+  - Configured [`frontend/src/lib/api.ts`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/lib/api.ts) with an automated Axios request interceptor attaching the `Authorization: Bearer` header, making authentication immune to cross-site cookie blocking and domain mismatches.
+  - Enabled persistent PDO database connections (`\PDO::ATTR_PERSISTENT => true`) in [`backend/config/database.php`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/config/database.php) to eliminate expensive repetitive TLS/SSL connection handshakes to Neon serverless PostgreSQL.
+  - Defaulted `SESSION_SECURE_COOKIE` to true in production in [`backend/config/session.php`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/config/session.php).
 - **Docker Build Directory Structure for Alpine**:
   - Resolved `cp: can't create '/etc/supervisor/conf.d/supervisord.conf': No such file or directory` error by pre-creating `/etc/supervisor/conf.d`, `/etc/nginx/http.d`, `/run/nginx`, and `/var/log/supervisor` directories before copying configuration files.
   - Added dual-context detection in [`Dockerfile`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/Dockerfile) and [`backend/Dockerfile`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/Dockerfile) to seamlessly handle builds whether Render executes with root `.` context or `backend` context.

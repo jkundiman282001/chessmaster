@@ -12,7 +12,23 @@ export const api = axios.create({
   },
 })
 
+// Automatically attach Bearer token if stored in localStorage
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('chessmaster_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 // Helper to initialize CSRF protection before stateful auth requests
 export async function getCsrfCookie(): Promise<void> {
-  await api.get('/sanctum/csrf-cookie')
+  // Only needed if no Bearer token is stored
+  if (!localStorage.getItem('chessmaster_token')) {
+    try {
+      await api.get('/sanctum/csrf-cookie')
+    } catch {
+      // Non-fatal if using Bearer token
+    }
+  }
 }

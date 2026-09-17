@@ -35,9 +35,12 @@ class AuthController extends Controller
             $request->session()->regenerate();
         }
 
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'message' => 'Registration successful.',
             'user' => new UserResource($user),
+            'token' => $token,
         ], 201);
     }
 
@@ -53,10 +56,12 @@ class AuthController extends Controller
 
         /** @var User $user */
         $user = $request->user();
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful.',
             'user' => new UserResource($user),
+            'token' => $token,
         ]);
     }
 

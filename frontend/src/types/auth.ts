@@ -11,6 +11,7 @@ export interface User {
 export interface AuthResponse {
   message: string
   user: User
+  token?: string
 }
 
 export interface LoginCredentials {
