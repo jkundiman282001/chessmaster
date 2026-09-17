@@ -6,7 +6,8 @@ PORT="${PORT:-8080}"
 echo "Configuring Nginx to listen on port $PORT..."
 sed -i "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/http.d/default.conf
 
-# Ensure storage and bootstrap cache directories exist and are writable
+# Ensure runtime directories exist
+mkdir -p /run/nginx /var/log/supervisor /var/log/nginx
 mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
@@ -30,4 +31,8 @@ if [ "$RUN_MIGRATIONS" != "false" ]; then
 fi
 
 echo "Starting Nginx and PHP-FPM via Supervisord on port $PORT..."
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+if [ -f "/etc/supervisord.conf" ]; then
+    exec /usr/bin/supervisord -c /etc/supervisord.conf
+else
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+fi

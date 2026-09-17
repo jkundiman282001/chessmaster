@@ -26,7 +26,7 @@ RUN docker-php-ext-install -j$(nproc) \
 # Install Composer from official image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Prepare directories for Nginx and Supervisor so cp never fails
+# Prepare directories for Nginx and Supervisor
 RUN mkdir -p /etc/nginx/http.d \
              /etc/supervisor/conf.d \
              /run/nginx \
@@ -46,7 +46,7 @@ RUN if [ -d "backend/docker" ]; then \
         cp backend/docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf && \
         cp backend/docker/entrypoint.sh /usr/local/bin/entrypoint.sh && \
         cp -r backend/* . && \
-        rm -rf backend; \
+        rm -rf backend frontend; \
     elif [ -d "docker" ]; then \
         cp docker/nginx.conf /etc/nginx/http.d/default.conf && \
         cp docker/supervisord.conf /etc/supervisord.conf && \

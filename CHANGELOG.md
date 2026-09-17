@@ -24,6 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     - Created [`frontend/vercel.json`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/vercel.json) for Single Page Application client routing (rewriting unmatched routes to `/index.html`) and aggressive asset caching for pieces and assets.
     - Updated [`frontend/src/lib/api.ts`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/lib/api.ts) to support the `VITE_API_URL` environment variable for direct Render API connections.
 
+### Fixed
+- **Docker Build Directory Structure for Alpine**:
+  - Resolved `cp: can't create '/etc/supervisor/conf.d/supervisord.conf': No such file or directory` error by pre-creating `/etc/supervisor/conf.d`, `/etc/nginx/http.d`, `/run/nginx`, and `/var/log/supervisor` directories before copying configuration files.
+  - Added dual-context detection in [`Dockerfile`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/Dockerfile) and [`backend/Dockerfile`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/Dockerfile) to seamlessly handle builds whether Render executes with root `.` context or `backend` context.
+
 - **AI Chess Bot Feature with Difficulty Tiers**:
   - Built high-performance chess bot service [`ChessBot.php`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/app/Services/Chess/ChessBot.php) supporting three distinct difficulty levels:
     - **Easy (Beginner ~800 ELO)**: Random legal move selection with weighted 1-ply capture opportunities.
