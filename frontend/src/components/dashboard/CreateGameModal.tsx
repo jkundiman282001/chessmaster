@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Zap, Clock, ShieldCheck, Loader2, Copy, Check } from 'lucide-react'
+import { X, Zap, Clock, ShieldCheck, Loader2, Copy, Check, Bot, Users, Sparkles } from 'lucide-react'
 import { api } from '../../lib/api'
 import type { Game, TimeControlKey } from '../../types/game'
 
@@ -9,6 +9,9 @@ interface CreateGameModalProps {
   onGameCreated: (game: Game) => void
 }
 
+type GameMode = 'bot' | 'friend'
+type BotDifficulty = 'easy' | 'medium' | 'hard'
+
 const TIME_OPTIONS: { id: TimeControlKey; label: string; desc: string; icon: string; badge: string }[] = [
   { id: 'bullet_1_0', label: '1 min Bullet', desc: 'Fast & chaotic', icon: '⚡', badge: '1 | 0' },
   { id: 'blitz_3_2', label: '3 min + 2s Blitz', desc: 'Tournament standard', icon: '🔥', badge: '3 | 2' },
@@ -17,9 +20,49 @@ const TIME_OPTIONS: { id: TimeControlKey; label: string; desc: string; icon: str
   { id: 'classical_30_0', label: '30 min Classical', desc: 'Deep calculation', icon: '🧠', badge: '30 | 0' },
 ]
 
+const BOT_DIFFICULTIES: {
+  id: BotDifficulty
+  title: string
+  rating: string
+  desc: string
+  emoji: string
+  badgeColor: string
+  activeBorder: string
+}[] = [
+  {
+    id: 'easy',
+    title: 'Beginner',
+    rating: '~800 ELO',
+    desc: 'Casual, forgiving tactics',
+    emoji: '🌱',
+    badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    activeBorder: 'border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500/30',
+  },
+  {
+    id: 'medium',
+    title: 'Intermediate',
+    rating: '~1400 ELO',
+    desc: 'Minimax & positional play',
+    emoji: '⚔️',
+    badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    activeBorder: 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/30',
+  },
+  {
+    id: 'hard',
+    title: 'Master',
+    rating: '~2000 ELO',
+    desc: 'Deep depth & aggressive',
+    emoji: '👑',
+    badgeColor: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
+    activeBorder: 'border-rose-500 bg-rose-500/10 ring-1 ring-rose-500/30',
+  },
+]
+
 export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameModalProps) {
+  const [mode, setMode] = useState<GameMode>('bot')
+  const [difficulty, setDifficulty] = useState<BotDifficulty>('medium')
   const [timeControl, setTimeControl] = useState<TimeControlKey>('rapid_10_0')
-  const [color, setColor] = useState<'random' | 'white' | 'black'>('random')
+  const [color, setColor] = useState<'random' | 'white' | 'black'>('white')
   const [submitting, setSubmitting] = useState(false)
   const [createdGame, setCreatedGame] = useState<Game | null>(null)
   const [copied, setCopied] = useState(false)
@@ -31,12 +74,24 @@ export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameMo
     setSubmitting(true)
 
     try {
-      const response = await api.post<{ message: string; game: Game }>('/api/games', {
+      const payload = {
         time_control: timeControl,
         color,
-      })
-      setCreatedGame(response.data.game)
-      onGameCreated(response.data.game)
+        is_bot: mode === 'bot',
+        bot_difficulty: mode === 'bot' ? difficulty : undefined,
+      }
+
+      const response = await api.post<{ message: string; game: Game }>('/api/games', payload)
+
+      if (mode === 'bot') {
+        // Bot games start immediately - enter match directly!
+        onGameCreated(response.data.game)
+        onClose()
+      } else {
+        // Friend room - show code screen to copy
+        setCreatedGame(response.data.game)
+        onGameCreated(response.data.game)
+      }
     } catch {
       // Handled
     } finally {
@@ -63,9 +118,11 @@ export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameMo
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/10 bg-slate-950/40">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm">
-              ♟
+              {mode === 'bot' ? '🤖' : '♟'}
             </div>
-            <h3 className="text-sm font-bold text-white">Create Chess Room</h3>
+            <h3 className="text-sm font-bold text-white">
+              {mode === 'bot' ? 'Play vs Computer Bot' : 'Create Room with Friend'}
+            </h3>
           </div>
           <button
             onClick={handleClose}
@@ -76,7 +133,7 @@ export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameMo
         </div>
 
         {createdGame ? (
-          /* Room Created Success View */
+          /* Room Created Success View (for friend multiplayer rooms) */
           <div className="p-6 text-center space-y-5">
             <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-950/50">
               <ShieldCheck className="w-7 h-7" />
@@ -114,38 +171,107 @@ export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameMo
               onClick={handleClose}
               className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-xs rounded-xl transition cursor-pointer shadow-lg shadow-emerald-950/50"
             >
-              Done &amp; Return to Dashboard
+              Enter Game Room
             </button>
           </div>
         ) : (
           /* Create Form */
-          <form onSubmit={handleCreate} className="p-5 sm:p-6 space-y-5 overflow-y-auto">
+          <form onSubmit={handleCreate} className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
+            {/* Mode Switch: Bot vs Friend */}
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-2 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                Game Mode
+              </label>
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-950/80 border border-white/5 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setMode('bot')}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer ${
+                    mode === 'bot'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 shadow-md'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Bot className="w-3.5 h-3.5" />
+                  <span>Play vs Bot</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('friend')}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer ${
+                    mode === 'friend'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 shadow-md'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Play vs Friend</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Bot Difficulty Selector (Only if Bot mode) */}
+            {mode === 'bot' && (
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-300 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Bot className="w-3.5 h-3.5 text-teal-400" />
+                    Bot Difficulty
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-normal">AI strength</span>
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {BOT_DIFFICULTIES.map((d) => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => setDifficulty(d.id)}
+                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                        difficulty === d.id
+                          ? d.activeBorder
+                          : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                      }`}
+                    >
+                      <span className="text-xl">{d.emoji}</span>
+                      <div className="text-xs font-bold text-white">{d.title}</div>
+                      <span
+                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${d.badgeColor}`}
+                      >
+                        {d.rating}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Time Control Options */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-2.5 flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-300 mb-2 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                  Select Time Control
+                  Time Control
                 </span>
-                <span className="text-[10px] text-slate-500 font-normal">Standard clocks</span>
+                <span className="text-[10px] text-slate-500 font-normal">Clocks</span>
               </label>
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto pr-1">
                 {TIME_OPTIONS.map((opt) => (
                   <button
                     key={opt.id}
                     type="button"
                     onClick={() => setTimeControl(opt.id)}
-                    className={`flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`flex items-center justify-between p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       timeControl === opt.id
                         ? 'bg-emerald-500/10 border-emerald-500/50 text-white shadow-sm ring-1 ring-emerald-500/30'
                         : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg">{opt.icon}</span>
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">{opt.icon}</span>
                       <div>
                         <div className="text-xs font-bold text-white">{opt.label}</div>
-                        <div className="text-[11px] text-slate-400">{opt.desc}</div>
+                        <div className="text-[10px] text-slate-400">{opt.desc}</div>
                       </div>
                     </div>
                     <span className="px-2 py-0.5 rounded-md bg-slate-900 border border-white/5 text-[10px] font-mono text-slate-300">
@@ -158,7 +284,7 @@ export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameMo
 
             {/* Color Selection */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-2.5 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-slate-300 mb-2 flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-amber-400" />
                 Play As
               </label>
@@ -166,7 +292,7 @@ export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameMo
                 <button
                   type="button"
                   onClick={() => setColor('white')}
-                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     color === 'white'
                       ? 'bg-white text-slate-950 border-white shadow-md'
                       : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
@@ -177,7 +303,7 @@ export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameMo
                 <button
                   type="button"
                   onClick={() => setColor('random')}
-                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     color === 'random'
                       ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 border-emerald-400 shadow-md shadow-emerald-950/50'
                       : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
@@ -188,7 +314,7 @@ export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameMo
                 <button
                   type="button"
                   onClick={() => setColor('black')}
-                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     color === 'black'
                       ? 'bg-slate-800 text-white border-slate-600 shadow-md'
                       : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
@@ -202,12 +328,17 @@ export function CreateGameModal({ isOpen, onClose, onGameCreated }: CreateGameMo
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition cursor-pointer"
+              className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition cursor-pointer mt-2"
             >
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-                  <span>Creating Room...</span>
+                  <span>Starting Match...</span>
+                </>
+              ) : mode === 'bot' ? (
+                <>
+                  <Bot className="w-4 h-4 text-slate-950" />
+                  <span>Start Match vs Bot</span>
                 </>
               ) : (
                 'Create Game Room'

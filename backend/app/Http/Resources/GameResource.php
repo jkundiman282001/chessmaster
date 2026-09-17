@@ -39,6 +39,8 @@ class GameResource extends JsonResource
             'winner_id' => $this->winner_id,
             'end_reason' => $this->end_reason,
             'draw_offered_by' => $this->draw_offered_by,
+            'is_bot' => (bool) $this->is_bot,
+            'bot_difficulty' => $this->bot_difficulty,
             'last_move_at' => $this->last_move_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

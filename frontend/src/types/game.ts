@@ -37,6 +37,8 @@ export interface Game {
   winner_id: number | null
   end_reason: string | null
   draw_offered_by: number | null
+  is_bot?: boolean
+  bot_difficulty?: 'easy' | 'medium' | 'hard'
   last_move_at: string | null
   created_at: string
   updated_at: string
@@ -110,4 +112,6 @@ export interface DashboardResponse {
 export interface CreateGamePayload {
   time_control?: TimeControlKey
   color?: 'white' | 'black' | 'random'
+  is_bot?: boolean
+  bot_difficulty?: 'easy' | 'medium' | 'hard'
 }

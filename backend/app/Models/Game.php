@@ -25,6 +25,8 @@ class Game extends Model
         'winner_id',
         'end_reason',
         'draw_offered_by',
+        'is_bot',
+        'bot_difficulty',
     ];
 
     protected $casts = [
@@ -32,6 +34,7 @@ class Game extends Model
         'black_time_remaining' => 'integer',
         'last_move_at' => 'datetime',
         'draw_offered_by' => 'integer',
+        'is_bot' => 'boolean',
     ];
 
     /**

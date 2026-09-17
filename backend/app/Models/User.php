@@ -74,4 +74,44 @@ class User extends Authenticatable
             'win_rate' => $winRate,
         ];
     }
+
+    /**
+     * Retrieve or create a bot user instance by difficulty.
+     */
+    public static function getOrCreateBotUser(string $difficulty = 'medium'): self
+    {
+        $difficulty = strtolower($difficulty);
+        $botConfigs = [
+            'easy' => [
+                'username' => 'bot_easy',
+                'name' => 'ChessBot (Easy)',
+                'email' => 'bot_easy@chessmaster.local',
+                'rating' => 800,
+            ],
+            'medium' => [
+                'username' => 'bot_medium',
+                'name' => 'ChessBot (Medium)',
+                'email' => 'bot_medium@chessmaster.local',
+                'rating' => 1400,
+            ],
+            'hard' => [
+                'username' => 'bot_hard',
+                'name' => 'ChessBot (Master)',
+                'email' => 'bot_hard@chessmaster.local',
+                'rating' => 2000,
+            ],
+        ];
+
+        $config = $botConfigs[$difficulty] ?? $botConfigs['medium'];
+
+        return self::firstOrCreate(
+            ['username' => $config['username']],
+            [
+                'name' => $config['name'],
+                'email' => $config['email'],
+                'password' => bcrypt('chessmaster_bot_key_' . $config['username']),
+                'rating' => $config['rating'],
+            ]
+        );
+    }
 }

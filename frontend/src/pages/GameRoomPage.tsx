@@ -11,6 +11,8 @@ import {
   Trophy,
   AlertCircle,
   Share2,
+  Bot,
+  Loader2,
 } from 'lucide-react'
 import { api } from '../lib/api'
 import { getEcho } from '../lib/echo'
@@ -41,6 +43,7 @@ export function GameRoomPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [boardTheme, setBoardTheme] = useState<'emerald' | 'slate' | 'amber'>('emerald')
   const [wsStatus, setWsStatus] = useState<'connected' | 'connecting' | 'fallback'>('connecting')
+  const [botThinking, setBotThinking] = useState(false)
 
   const movesContainerRef = useRef<HTMLDivElement>(null)
 
@@ -55,6 +58,11 @@ export function GameRoomPage() {
   const isUserTurn = useMemo(() => {
     if (!game || !playerColor || game.status !== 'in_progress') return false
     return game.turn === playerColor
+  }, [game, playerColor])
+
+  const isBotTurn = useMemo(() => {
+    if (!game || !game.is_bot || game.status !== 'in_progress' || !playerColor) return false
+    return game.turn !== playerColor
   }, [game, playerColor])
 
   // Fetch initial game state
@@ -250,6 +258,34 @@ export function GameRoomPage() {
       movesContainerRef.current.scrollTop = movesContainerRef.current.scrollHeight
     }
   }, [game?.pgn])
+
+  // Automated bot move trigger
+  useEffect(() => {
+    if (!isBotTurn || !code || botThinking) return
+
+    setBotThinking(true)
+    const delay = 450 + Math.floor(Math.random() * 250)
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.post<{ game: Game; move: any; engine: any }>(`/api/games/${code}/bot-move`)
+        const updatedGame = res.data.game
+        setGame(updatedGame)
+        setWhiteClock(updatedGame.white_time_remaining)
+        setBlackClock(updatedGame.black_time_remaining)
+        if (res.data.move) {
+          setLastMove({ from: res.data.move.from, to: res.data.move.to })
+        }
+        setIsCheck(res.data.engine?.is_check ?? false)
+      } catch (err: any) {
+        const msg = err.response?.data?.message || 'Bot move failed.'
+        setActionError(msg)
+      } finally {
+        setBotThinking(false)
+      }
+    }, delay)
+
+    return () => clearTimeout(timer)
+  }, [isBotTurn, code, game?.fen])
 
   // Move submission handler
   const handleMove = async (move: { from: string; to: string; promotion?: string }) => {
@@ -482,13 +518,20 @@ export function GameRoomPage() {
             ))}
           </div>
 
-          <button
-            onClick={copyRoomCode}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 transition-colors cursor-pointer"
-          >
-            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{copiedLink ? 'Link Copied!' : 'Share Room'}</span>
-          </button>
+          {game.is_bot ? (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300">
+              <Bot className="w-3.5 h-3.5" />
+              <span className="capitalize">{game.bot_difficulty || 'AI'} Bot</span>
+            </div>
+          ) : (
+            <button
+              onClick={copyRoomCode}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-200 transition-colors cursor-pointer"
+            >
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{copiedLink ? 'Link Copied!' : 'Share Room'}</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -556,17 +599,43 @@ export function GameRoomPage() {
           {/* Top Player Card (Opponent) */}
           <div className="w-full flex items-center justify-between px-3.5 py-2.5 mb-2.5 glass-card border border-white/10 rounded-2xl">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center font-black text-slate-300 text-sm">
-                {topPlayer?.username ? topPlayer.username[0].toUpperCase() : '?'}
+              <div
+                className={`w-9 h-9 rounded-xl border flex items-center justify-center font-black text-sm ${
+                  game.is_bot
+                    ? 'bg-teal-500/20 border-teal-500/30 text-teal-300'
+                    : 'bg-slate-800 border-white/10 text-slate-300'
+                }`}
+              >
+                {game.is_bot ? (
+                  <Bot className="w-5 h-5" />
+                ) : topPlayer?.username ? (
+                  topPlayer.username[0].toUpperCase()
+                ) : (
+                  '?'
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-white">{topPlayer?.username || 'Waiting for player...'}</span>
+                  <span className="font-bold text-sm text-white">
+                    {topPlayer?.username || (game.is_bot ? 'ChessBot' : 'Waiting for player...')}
+                  </span>
                   <span className="text-[11px] text-slate-400 font-medium">({topColorLabel})</span>
+                  {game.is_bot && (
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                      {game.bot_difficulty || 'AI'}
+                    </span>
+                  )}
                 </div>
-                {topPlayer && (
-                  <span className="text-xs text-amber-400 font-bold font-mono">{topPlayer.rating} ELO</span>
-                )}
+                <div className="flex items-center gap-2">
+                  {topPlayer && (
+                    <span className="text-xs text-amber-400 font-bold font-mono">{topPlayer.rating} ELO</span>
+                  )}
+                  {botThinking && (
+                    <span className="flex items-center gap-1 text-[11px] text-teal-400 font-semibold animate-pulse">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Thinking...
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -706,11 +775,15 @@ export function GameRoomPage() {
                 <span className="text-white">
                   {game.turn === 'white' ? 'White' : 'Black'}'s turn
                 </span>
-                {isUserTurn && (
+                {isUserTurn ? (
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold ml-auto border border-emerald-500/30">
                     Your Turn
                   </span>
-                )}
+                ) : botThinking ? (
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-extrabold ml-auto border border-teal-500/30 flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Bot Thinking...
+                  </span>
+                ) : null}
               </div>
             )}
 
