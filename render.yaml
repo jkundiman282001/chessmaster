@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: chessmaster-api
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    envVars:
+      - key: APP_NAME
+        value: ChessMaster
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: FRONTEND_URL
+        sync: false
+      - key: RUN_MIGRATIONS
+        value: true

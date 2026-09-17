@@ -10,6 +10,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased] - 2026-09-17
 
 ### Added
+- **Zero-Cost Production Deployment (Render + Neon + Vercel)**:
+  - **Neon Serverless PostgreSQL Integration**:
+    - Configured support for Neon's free-tier serverless PostgreSQL via `DB_URL` with SSL mode enforcement (`sslmode=require`).
+    - Documented Neon connection string structure in [`backend/.env.example`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/.env.example).
+  - **Render Free-Tier Docker Containerization**:
+    - Created production Alpine-based [`Dockerfile`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/Dockerfile) with PHP 8.3 FPM, Nginx, Supervisord, Composer, and PostgreSQL extensions (`pdo_pgsql`, `pgsql`, `bcmath`, `mbstring`, `zip`, `opcache`, `pcntl`).
+    - Created [`backend/docker/nginx.conf`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/docker/nginx.conf) and [`backend/docker/supervisord.conf`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/docker/supervisord.conf).
+    - Created [`backend/docker/entrypoint.sh`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/docker/entrypoint.sh) with dynamic `$PORT` replacement, automatic database migration execution (`php artisan migrate --force`), and production caching (`config:cache`, `route:cache`, `view:cache`).
+    - Created [`render.yaml`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/render.yaml) Blueprint configuration for 1-click deployment on Render's free tier.
+    - Updated [`backend/config/cors.php`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/config/cors.php) with multi-origin parsing and `#^https://.*\.vercel\.app$#` pattern matching to support all Vercel deployment URLs.
+  - **Vercel Free-Tier Frontend Hosting**:
+    - Created [`frontend/vercel.json`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/vercel.json) for Single Page Application client routing (rewriting unmatched routes to `/index.html`) and aggressive asset caching for pieces and assets.
+    - Updated [`frontend/src/lib/api.ts`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/lib/api.ts) to support the `VITE_API_URL` environment variable for direct Render API connections.
+
 - **AI Chess Bot Feature with Difficulty Tiers**:
   - Built high-performance chess bot service [`ChessBot.php`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/app/Services/Chess/ChessBot.php) supporting three distinct difficulty levels:
     - **Easy (Beginner ~800 ELO)**: Random legal move selection with weighted 1-ply capture opportunities.
