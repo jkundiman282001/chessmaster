@@ -35,8 +35,8 @@ export function CosmeticsPreviewCard() {
               ♚
             </div>
             <div>
-              <div className="font-bold text-slate-200">Staunton Vector</div>
-              <div className="text-[11px] text-slate-400">Crisp SVG Piece Set</div>
+              <div className="font-bold text-slate-200">Classic Pieces</div>
+              <div className="text-[11px] text-slate-400">White &amp; Black Classic Set</div>
             </div>
           </div>
           <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">

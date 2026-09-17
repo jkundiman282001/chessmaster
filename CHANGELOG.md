@@ -7,7 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased] - 2026-09-12
+## [Unreleased] - 2026-09-17
+
+### Added
+- **Default Piece Sets Integration (`White Classic` & `Black Classic`)**:
+  - Configured [`ChessPiece.tsx`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/components/chess/ChessPiece.tsx) to use the full PNG piece sets from [`frontend/public/pieces/White Classic/`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/public/pieces/White%20Classic/) and [`frontend/public/pieces/Black Classic/`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/public/pieces/Black%20Classic/) as the default in-game pieces.
+  - Mapped pieces (`pawn`, `knight`, `bishop`, `rook`, `queen`, `king`) to transparent PNG assets for both White and Black sides.
+  - Added robust per-piece fallback to inline vector SVGs if any asset fails to load.
+  - Updated [`CosmeticsPreviewCard.tsx`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/components/dashboard/CosmeticsPreviewCard.tsx) and [`frontend/public/pieces/README.md`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/public/pieces/README.md) to document the default piece sets.
+
+## [2026-09-12] - 2026-09-12
 
 ### Added
 - **Custom Chess Piece Assets Architecture**:

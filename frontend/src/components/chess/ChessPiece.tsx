@@ -5,42 +5,43 @@ interface ChessPieceProps {
   className?: string
 }
 
+const PIECE_FILE_NAMES: Record<string, string> = {
+  p: 'pawn.png',
+  n: 'knight.png',
+  b: 'bishop.png',
+  r: 'rook.png',
+  q: 'queen.png',
+  k: 'king.png',
+}
+
 export const ChessPiece: React.FC<ChessPieceProps> = ({ piece, className = 'w-full h-full' }) => {
+  const [failedPieces, setFailedPieces] = useState<Record<string, boolean>>({})
+
   const isWhite = piece === piece.toUpperCase()
   const type = piece.toLowerCase()
 
-  // Determine asset path: pawns use custom PNGs, others use custom SVGs
-  const defaultSrc = type === 'p'
-    ? `/pieces/${isWhite ? 'w' : 'b'}_p.png`
-    : `/pieces/${isWhite ? 'w' : 'b'}_${type}.svg`
+  // Default game assets: White Classic and Black Classic piece sets
+  const folder = isWhite ? 'White Classic' : 'Black Classic'
+  const fileName = PIECE_FILE_NAMES[type] || 'pawn.png'
+  const assetSrc = `/pieces/${encodeURIComponent(folder)}/${fileName}`
 
-  const [currentSrc, setCurrentSrc] = useState<string | null>(defaultSrc)
-  const [useFallback, setUseFallback] = useState(false)
+  const hasFailed = failedPieces[piece]
 
-  const handleError = () => {
-    // If /pieces/w_p.png fails, try root /w_p.png as secondary candidate
-    if (type === 'p' && currentSrc?.startsWith('/pieces/')) {
-      setCurrentSrc(`/${isWhite ? 'w' : 'b'}_p.png`)
-      return
-    }
-    // Fall back to built-in inline vector SVG
-    setUseFallback(true)
-  }
-
-  // Primary: Load asset
-  if (!useFallback && currentSrc) {
+  // Primary: Load default classic pieces from /pieces/White Classic/ and /pieces/Black Classic/
+  if (!hasFailed) {
     return (
       <img
-        src={currentSrc}
+        key={assetSrc}
+        src={assetSrc}
         alt={`${isWhite ? 'White' : 'Black'} ${type}`}
-        className={`${className} object-contain select-none pointer-events-none`}
+        className={`${className} object-contain select-none pointer-events-none drop-shadow-md`}
         draggable={false}
-        onError={handleError}
+        onError={() => setFailedPieces((prev) => ({ ...prev, [piece]: true }))}
       />
     )
   }
 
-  // Fallback: Built-in inline vector SVGs
+  // Fallback: Built-in vector SVGs if asset file is missing or failed
   const fill = isWhite ? '#ffffff' : '#1e293b'
   const stroke = isWhite ? '#334155' : '#0f172a'
   const detail = isWhite ? '#cbd5e1' : '#475569'
