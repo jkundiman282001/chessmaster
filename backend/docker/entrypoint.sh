@@ -27,10 +27,11 @@ fi
 # Clear previous cache to ensure fresh database and environment variables
 php artisan config:clear || true
 
-# Run database migrations against Neon
+# Run database migrations against Neon (using direct unpooled connection if pooler is provided, as recommended by Neon for DDL)
 if [ "$RUN_MIGRATIONS" != "false" ]; then
     echo "Running database migrations on PostgreSQL..."
-    php artisan migrate --force
+    MIGRATE_URL=$(echo "$DATABASE_URL" | sed 's/-pooler\./\./g')
+    DB_URL="$MIGRATE_URL" DATABASE_URL="$MIGRATE_URL" php artisan migrate --force || true
 fi
 
 # Cache Laravel optimizations for production performance
