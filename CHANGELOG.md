@@ -25,6 +25,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     - Updated [`frontend/src/lib/api.ts`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/lib/api.ts) to support the `VITE_API_URL` environment variable for direct Render API connections.
 
 ### Fixed
+- **Neon Database Migration Execution & Parameter Mapping**:
+  - Aliased both `DATABASE_URL` and `DB_URL` in [`backend/config/database.php`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/config/database.php) and [`backend/docker/entrypoint.sh`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/docker/entrypoint.sh) so Neon connection strings are recognized regardless of the environment variable name configured on Render.
+  - Cleared configuration cache before migrations and removed stderr/stdout suppression on `php artisan migrate --force` to ensure transparent, verbose migration execution during container boot.
 - **Authentication Latency & Cross-Origin Performance**:
   - Eliminated redundant `GET /sanctum/csrf-cookie` roundtrip on authentication requests by issuing Sanctum API Bearer tokens (`auth_token`) on login and registration in [`AuthController.php`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/backend/app/Http/Controllers/Api/AuthController.php).
   - Configured [`frontend/src/lib/api.ts`](file:///mnt/c/Users/Japhet/Desktop/Personal%20Projects/chessmaster/frontend/src/lib/api.ts) with an automated Axios request interceptor attaching the `Authorization: Bearer` header, making authentication immune to cross-site cookie blocking and domain mismatches.

@@ -1,10 +1,16 @@
 #!/bin/sh
 set -e
 
-# Render assigns dynamic port in $PORT environment variable
 PORT="${PORT:-8080}"
 echo "Configuring Nginx to listen on port $PORT..."
 sed -i "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/http.d/default.conf
+
+# Map DATABASE_URL and DB_URL so whichever is configured in Render works seamlessly
+if [ -n "$DATABASE_URL" ] && [ -z "$DB_URL" ]; then
+    export DB_URL="$DATABASE_URL"
+elif [ -n "$DB_URL" ] && [ -z "$DATABASE_URL" ]; then
+    export DATABASE_URL="$DB_URL"
+fi
 
 # Ensure runtime directories exist
 mkdir -p /run/nginx /var/log/supervisor /var/log/nginx
@@ -14,8 +20,17 @@ chown -R www-data:www-data storage bootstrap/cache
 
 # Generate application key if missing
 if [ -z "$APP_KEY" ]; then
-    echo "Warning: APP_KEY not provided. Generating temporary key..."
+    echo "Generating application key..."
     php artisan key:generate --force || true
+fi
+
+# Clear previous cache to ensure fresh database and environment variables
+php artisan config:clear || true
+
+# Run database migrations against Neon
+if [ "$RUN_MIGRATIONS" != "false" ]; then
+    echo "Running database migrations on PostgreSQL..."
+    php artisan migrate --force
 fi
 
 # Cache Laravel optimizations for production performance
@@ -23,12 +38,6 @@ echo "Caching Laravel configuration, routes, and views..."
 php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
-
-# Run database migrations against Neon
-if [ "$RUN_MIGRATIONS" != "false" ]; then
-    echo "Running database migrations on PostgreSQL..."
-    php artisan migrate --force || echo "Migration command completed with warnings."
-fi
 
 echo "Starting Nginx and PHP-FPM via Supervisord on port $PORT..."
 if [ -f "/etc/supervisord.conf" ]; then

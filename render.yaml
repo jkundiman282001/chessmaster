@@ -26,9 +26,11 @@ services:
       - key: DB_SSLMODE
         value: require
       - key: SESSION_DRIVER
-        value: database
+        value: file
       - key: CACHE_STORE
-        value: database
+        value: file
+      - key: BCRYPT_ROUNDS
+        value: "10"
       - key: QUEUE_CONNECTION
         value: sync
       - key: FRONTEND_URL

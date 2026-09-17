@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { api, getCsrfCookie } from '../lib/api'
+import { api } from '../lib/api'
 import type {
   AuthResponse,
   LoginCredentials,
@@ -31,10 +31,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const refreshUser = useCallback(async () => {
+    const token = localStorage.getItem('chessmaster_token')
+    if (!token) {
+      setUser(null)
+      setIsLoading(false)
+      return
+    }
+
     try {
       const response = await api.get<{ user: User }>('/api/user')
       setUser(response.data.user)
     } catch {
+      localStorage.removeItem('chessmaster_token')
       setUser(null)
     } finally {
       setIsLoading(false)
@@ -46,10 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser])
 
   const login = async (credentials: LoginCredentials): Promise<User> => {
-    // Only fetch CSRF if running without token
-    if (!localStorage.getItem('chessmaster_token')) {
-      await getCsrfCookie()
-    }
     const response = await api.post<AuthResponse>('/api/login', credentials)
     if (response.data.token) {
       localStorage.setItem('chessmaster_token', response.data.token)
@@ -59,9 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const register = async (credentials: RegisterCredentials): Promise<User> => {
-    if (!localStorage.getItem('chessmaster_token')) {
-      await getCsrfCookie()
-    }
     const response = await api.post<AuthResponse>('/api/register', credentials)
     if (response.data.token) {
       localStorage.setItem('chessmaster_token', response.data.token)
